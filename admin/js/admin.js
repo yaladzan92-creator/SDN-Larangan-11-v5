@@ -22,7 +22,6 @@ let cache = {
   activity: [],
   program: [],
   news: [],
-  announcement: [],
   achievement: [],
   gallery: [],
   document: [],
@@ -331,16 +330,6 @@ const defs = {
       ["published", "Publish", "checkbox"]
     ]
   },
-  announcement: {
-    table: "announcements",
-    title: "Pengumuman",
-    fields: [
-      ["title", "Judul", "text"],
-      ["published_at", "Tanggal", "date"],
-      ["body", "Isi", "textarea"],
-      ["published", "Publish", "checkbox"]
-    ]
-  },
   achievement: {
     table: "achievements",
     title: "Prestasi",
@@ -597,7 +586,6 @@ async function loadAll() {
       activityRes,
       programRes,
       newsRes,
-      announcementRes,
       achievementRes,
       galleryRes,
       documentRes,
@@ -613,7 +601,6 @@ async function loadAll() {
       client.from("extracurricular_activities").select("*").order("activity_date", { ascending: false }),
       client.from("programs").select("*").order("sort_order", { ascending: true }),
       client.from("news").select("*").order("published_at", { ascending: false }),
-      client.from("announcements").select("*").order("published_at", { ascending: false }),
       client.from("achievements").select("*").order("year", { ascending: false }),
       client.from("gallery").select("*").order("created_at", { ascending: false }),
       client.from("documents").select("*").order("created_at", { ascending: false }),
@@ -632,7 +619,6 @@ async function loadAll() {
       { name: "Kegiatan Eskul", res: activityRes },
       { name: "Program", res: programRes },
       { name: "Berita", res: newsRes },
-      { name: "Pengumuman", res: announcementRes },
       { name: "Prestasi", res: achievementRes },
       { name: "Galeri", res: galleryRes },
       { name: "Dokumen", res: documentRes },
@@ -660,7 +646,6 @@ async function loadAll() {
     cache.activity = activityRes?.data || [];
     cache.program = programRes?.data || [];
     cache.news = newsRes?.data || [];
-    cache.announcement = announcementRes?.data || [];
     cache.achievement = achievementRes?.data || [];
     cache.gallery = galleryRes?.data || [];
     cache.document = documentRes?.data || [];
@@ -1125,7 +1110,6 @@ async function saveEditor(e, type, id) {
     ],
     program: [["title", "Nama program sekolah wajib diisi."]],
     news: [["title", "Judul berita wajib diisi."]],
-    announcement: [["title", "Judul pengumuman wajib diisi."]],
     achievement: [["title", "Judul prestasi wajib diisi."]],
     gallery: [["title", "Judul foto galeri wajib diisi."]],
     document: [["title", "Nama dokumen wajib diisi."]],
@@ -1177,7 +1161,7 @@ async function saveEditor(e, type, id) {
       if (kind === "file") continue;
       if (kind === "checkbox") payload[name] = fd.get(name) === "on";
       else if (kind === "number") payload[name] = fd.get(name) ? +fd.get(name) : null;
-      else if (kind === "date" && fd.get(name) && ["news", "announcement"].includes(type)) {
+      else if (kind === "date" && fd.get(name) && type === "news") {
         payload[name] = fd.get(name) + "T00:00:00+07:00";
       } else {
         payload[name] = fd.get(name) ? String(fd.get(name)).trim() : null;

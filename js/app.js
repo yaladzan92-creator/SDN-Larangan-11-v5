@@ -78,7 +78,6 @@ async function init() {
   let activities = [];
   let programs = [];
   let news = [];
-  let announcements = [];
   let achievements = [];
   let gallery = [];
   let documents = [];
@@ -86,14 +85,13 @@ async function init() {
   let staff = [];
 
   if (window.SDN11?.configured && window.SDN11?.client) {
-    const [pr, r, e, a, pg, n, an, ac, g, d, s, st] = await Promise.all([
+    const [pr, r, e, a, pg, n, ac, g, d, s, st] = await Promise.all([
       SDN11.client.from("school_profile").select("*").eq("id", 1).maybeSingle(),
       q("class_groups", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "grade", asc: true }]),
       q("extracurriculars", "*", [{ op: "eq", col: "active", val: true }, { op: "order", col: "name", asc: true }]),
       q("extracurricular_activities", "*, extracurriculars(name)", [{ op: "eq", col: "published", val: true }, { op: "order", col: "activity_date", asc: false }, { op: "limit", val: 6 }]),
       q("programs", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "sort_order", asc: true }]),
       q("news", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "published_at", asc: false }, { op: "limit", val: 6 }]),
-      q("announcements", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "published_at", asc: false }, { op: "limit", val: 6 }]),
       q("achievements", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "year", asc: false }, { op: "limit", val: 8 }]),
       q("gallery", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "created_at", asc: false }, { op: "limit", val: 12 }]),
       q("documents", "*", [{ op: "eq", col: "published", val: true }, { op: "order", col: "created_at", asc: false }]),
@@ -107,7 +105,6 @@ async function init() {
     activities = a;
     programs = pg;
     news = n;
-    announcements = an;
     achievements = ac;
     gallery = g;
     documents = d;
@@ -123,7 +120,6 @@ async function init() {
   initComplaintForm();
   renderPrograms(programs);
   renderNews(news);
-  renderAnnouncements(announcements);
   renderAchievements(achievements);
   renderGallery(gallery);
   renderRombel(rombel);
@@ -498,14 +494,6 @@ function renderNews(items) {
     $("newsList").innerHTML = items.length
       ? items.map(x => `<article class="content-card">${img(x.image_url, x.title)}<div class="body"><small>${dateID(x.published_at) || "INFORMASI"}</small><h3>${esc(x.title)}</h3><p>${esc(x.excerpt || "")}</p></div></article>`).join("")
       : '<div class="empty">Belum ada berita.</div>';
-  }
-}
-
-function renderAnnouncements(items) {
-  if ($("announcementList")) {
-    $("announcementList").innerHTML = items.length
-      ? items.map(x => `<article class="announcement"><strong>${dateID(x.published_at) || "Informasi"}</strong><div><b>${esc(x.title)}</b><p>${esc(x.body || "")}</p></div></article>`).join("")
-      : '<div class="empty">Belum ada pengumuman.</div>';
   }
 }
 
