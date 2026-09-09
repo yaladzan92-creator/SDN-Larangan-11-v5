@@ -39,58 +39,29 @@ const fallbackProfile = {
   spmb_url: "https://spmb.tangerangkota.go.id/"
 };
 
-const fallbackStaff = [
-  {
-    id: "fs-1",
-    name: "Fetty Meriyanti, S.Pd.",
-    role: "principal",
-    subject: "Kepala Sekolah SDN Larangan 11",
-    quote: "Membimbing dengan hati, mendidik dengan teladan, demi terwujudnya generasi emas yang religius dan berkarakter.",
-    bio: "Berkomitmen memajukan mutu pendidikan, lingkungan ramah anak, dan penguatan karakter Profil Pelajar Pancasila di SDN Larangan 11.",
-    photo_url: "https://tangerangekspres.disway.id/upload/573156cd46f2508f175d17e17eeb0efa.jpeg",
-    sort_order: 1,
-    published: true
-  },
-  {
-    id: "fs-2",
-    name: "Dewan Guru SDN Larangan 11",
-    role: "teacher",
-    subject: "Pendidik Kelas & Mata Pelajaran",
-    quote: "Setiap anak memiliki potensi istimewa yang siap diasah melalui pembelajaran yang menyenangkan dan bermakna.",
-    bio: "Tenaga pendidik profesional dan berdedikasi tinggi yang mengampu Kurikulum Merdeka pada jenjang kelas 1 hingga 6 serta mapel agama dan olahraga.",
-    photo_url: "https://tangerangekspres.disway.id/upload/41e8591802ca9390ba3fdc27369b1e04.jpg",
-    sort_order: 2,
-    published: true
-  },
-  {
-    id: "fs-3",
-    name: "Pengawas Pembina SD",
-    role: "supervisor",
-    subject: "Pengawas Satuan Pendidikan",
-    quote: "Peningkatan mutu pendidikan berkelanjutan melalui supervisi akademik dan manajerial yang kolaboratif.",
-    bio: "Mendampingi sekolah dalam menjamin ketercapaian standar mutu pendidikan dasar di lingkungan Dinas Pendidikan Kota Tangerang.",
-    photo_url: "",
-    sort_order: 3,
-    published: true
-  }
-];
+const fallbackStaff = [];
 
 let allStaffData = [];
 
 async function q(table, select = "*", filters = []) {
   if (!window.SDN11?.configured || !window.SDN11?.client) return [];
-  let req = SDN11.client.from(table).select(select);
-  for (const f of filters) {
-    if (f.op === "eq") req = req.eq(f.col, f.val);
-    if (f.op === "order") req = req.order(f.col, { ascending: f.asc ?? false });
-    if (f.op === "limit") req = req.limit(f.val);
-  }
-  const { data, error } = await req;
-  if (error) {
-    console.warn("[SDN11]", table, error.message);
+  try {
+    let req = SDN11.client.from(table).select(select);
+    for (const f of filters) {
+      if (f.op === "eq") req = req.eq(f.col, f.val);
+      if (f.op === "order") req = req.order(f.col, { ascending: f.asc ?? false });
+      if (f.op === "limit") req = req.limit(f.val);
+    }
+    const { data, error } = await req;
+    if (error) {
+      console.warn(`[SDN11 ${table}]`, error.message);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn(`[SDN11 ${table} Exception]`, err?.message || err);
     return [];
   }
-  return data || [];
 }
 
 const fallbackImg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><rect width="100%" height="100%" fill="#dfe7ed"/><text x="50%" y="50%" text-anchor="middle" fill="#667085" font-family="Arial" font-size="26">SDN Larangan 11</text></svg>');
@@ -144,7 +115,7 @@ async function init() {
     staff = st;
   }
 
-  allStaffData = (staff && staff.length > 0) ? staff : fallbackStaff;
+  allStaffData = (Array.isArray(staff) && staff.length > 0) ? staff : [];
 
   renderProfile(p);
   renderStaff(allStaffData);
@@ -238,7 +209,12 @@ function renderStaff(items) {
   if (!container) return;
 
   if (!items || !items.length) {
-    container.innerHTML = '<div class="empty">Belum ada profil pendidik yang ditampilkan.</div>';
+    container.innerHTML = `
+      <div class="empty text-center" style="padding: 38px 24px; text-align: center; background: #fff; border: 1px dashed var(--line); border-radius: 18px; margin: 10px 0;">
+        <p style="font-size: 16px; font-weight: 700; color: var(--navy); margin: 0 0 6px;">Profil pendidik belum tersedia.</p>
+        <p style="font-size: 14px; color: var(--muted); margin: 0;">Informasi profil Kepala Sekolah, Guru, dan Pengawas akan ditampilkan setelah diperbarui oleh Admin.</p>
+      </div>
+    `;
     return;
   }
 
@@ -265,7 +241,10 @@ function renderStaff(items) {
     <div class="staff-grid">
       ${sorted.map(s => {
         const isPrincipal = s.role === "principal";
-        const photoSrc = s.photo_url || defaultAvatar;
+        const photoSrc = (s.photo_url && s.photo_url.trim()) ? s.photo_url.trim() : defaultAvatar;
+        const quote = s.quote ? String(s.quote).trim() : "";
+        const bio = s.bio ? String(s.bio).trim() : "";
+        const subject = s.subject ? String(s.subject).trim() : "";
         return `
           <article class="staff-card ${isPrincipal ? "staff-card-principal" : ""}" data-role="${esc(s.role)}">
             <div class="staff-photo-wrap">
@@ -274,9 +253,9 @@ function renderStaff(items) {
             </div>
             <div class="staff-info">
               <h3 class="staff-name">${esc(s.name)}</h3>
-              ${s.subject ? `<p class="staff-subject">${esc(s.subject)}</p>` : ""}
-              ${s.quote ? `<blockquote class="staff-quote">“${esc(s.quote)}”</blockquote>` : ""}
-              ${s.bio ? `<p class="staff-bio">${esc(s.bio)}</p>` : ""}
+              ${subject ? `<p class="staff-subject">${esc(subject)}</p>` : ""}
+              ${quote ? `<blockquote class="staff-quote">“${esc(quote)}”</blockquote>` : ""}
+              ${bio ? `<p class="staff-bio">${esc(bio)}</p>` : ""}
             </div>
           </article>
         `;
@@ -297,7 +276,20 @@ function initStaffTabs() {
         renderStaff(allStaffData);
       } else {
         const filtered = allStaffData.filter(s => s.role === role);
-        renderStaff(filtered);
+        if (!filtered.length) {
+          const container = $("staffList");
+          if (container) {
+            const roleName = role === "principal" ? "Kepala Sekolah" : role === "supervisor" ? "Pengawas Sekolah" : "Dewan Guru";
+            container.innerHTML = `
+              <div class="empty text-center" style="padding: 36px 24px; text-align: center; background: #fff; border: 1px dashed var(--line); border-radius: 18px; margin: 10px 0;">
+                <p style="font-size: 16px; font-weight: 700; color: var(--navy); margin: 0 0 6px;">Profil pendidik belum tersedia.</p>
+                <p style="font-size: 14px; color: var(--muted); margin: 0;">Informasi profil ${roleName} akan ditampilkan setelah diperbarui oleh Admin.</p>
+              </div>
+            `;
+          }
+        } else {
+          renderStaff(filtered);
+        }
       }
     });
   });
@@ -320,6 +312,24 @@ function initComplaintForm() {
       msgEl.textContent = "";
     }
 
+    // 1. Anti-bot Honeypot check
+    const honeypotVal = $("compWebsite")?.value?.trim();
+    if (honeypotVal) {
+      console.warn("[SDN11] Bot submission rejected via honeypot.");
+      // Do NOT insert into Supabase; simulate normal acceptance to deceive automated bots
+      form.reset();
+      showComplaintMsg("Pengaduan Anda berhasil dikirim! Laporan ini bersifat privat dan akan segera ditindaklanjuti oleh pihak sekolah. Terima kasih atas kepedulian Anda terhadap SDN Larangan 11.", "success");
+      return;
+    }
+
+    // 2. JavaScript consent verification
+    const consentChecked = $("compConsent")?.checked;
+    if (!consentChecked) {
+      showComplaintMsg("Anda wajib mencentang persetujuan pernyataan bahwa informasi yang disampaikan adalah benar.", "error");
+      $("compConsent")?.focus();
+      return;
+    }
+
     const reporterName = $("compName")?.value.trim();
     const email = $("compEmail")?.value.trim() || null;
     const whatsapp = $("compWhatsapp")?.value.trim() || null;
@@ -329,29 +339,59 @@ function initComplaintForm() {
     const fileInput = $("compAttachment");
     const file = fileInput?.files?.[0];
 
-    // Client-side validation
+    // 3. Client-side length and presence validations
     if (!reporterName) {
       showComplaintMsg("Silakan masukkan nama lengkap Anda.", "error");
       $("compName")?.focus();
       return;
     }
+    if (reporterName.length > 150) {
+      showComplaintMsg("Nama lengkap terlalu panjang (maksimal 150 karakter).", "error");
+      $("compName")?.focus();
+      return;
+    }
+
+    if (email && email.length > 254) {
+      showComplaintMsg("Alamat email terlalu panjang (maksimal 254 karakter).", "error");
+      $("compEmail")?.focus();
+      return;
+    }
+
+    if (whatsapp && whatsapp.length > 30) {
+      showComplaintMsg("Nomor WhatsApp terlalu panjang (maksimal 30 karakter).", "error");
+      $("compWhatsapp")?.focus();
+      return;
+    }
+
     if (!category) {
       showComplaintMsg("Silakan pilih kategori pengaduan.", "error");
       $("compCategory")?.focus();
       return;
     }
+
     if (!title) {
       showComplaintMsg("Silakan masukkan judul pengaduan.", "error");
       $("compTitle")?.focus();
       return;
     }
+    if (title.length > 200) {
+      showComplaintMsg("Judul pengaduan terlalu panjang (maksimal 200 karakter).", "error");
+      $("compTitle")?.focus();
+      return;
+    }
+
     if (!body) {
       showComplaintMsg("Silakan tulis uraian lengkap pengaduan Anda.", "error");
       $("compBody")?.focus();
       return;
     }
+    if (body.length > 5000) {
+      showComplaintMsg("Uraian pengaduan terlalu panjang (maksimal 5.000 karakter).", "error");
+      $("compBody")?.focus();
+      return;
+    }
 
-    // Attachment validation (Max 5MB, specific types)
+    // 4. Attachment validation (Max 5MB, specific types: JPG, PNG, WebP, PDF)
     if (file) {
       const allowedTypes = [
         "image/jpeg",
@@ -420,7 +460,7 @@ function initComplaintForm() {
       form.reset();
       showComplaintMsg("Pengaduan Anda berhasil dikirim! Laporan ini bersifat privat dan akan segera ditindaklanjuti oleh pihak sekolah. Terima kasih atas kepedulian Anda terhadap SDN Larangan 11.", "success");
     } catch (err) {
-      console.error("[SDN11] Complaint submit error:", err);
+      console.warn("[SDN11] Complaint submit error:", err?.message || err);
       showComplaintMsg("Gagal mengirim pengaduan: " + (err.message || "Terjadi kendala jaringan."), "error");
     } finally {
       if (submitBtn) {

@@ -83,18 +83,22 @@
           <h3>Formulir Pengaduan Publik</h3>
           <p class="form-desc">Silakan lengkapi formulir di bawah ini dengan jelas dan benar.</p>
           <form id="publicComplaintForm" class="complaint-form" novalidate>
+            <div class="form-hp" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;z-index:-1;" aria-hidden="true">
+              <label for="compWebsite">Website Sekolah (Jangan diisi)</label>
+              <input type="text" id="compWebsite" name="website" tabindex="-1" autocomplete="off" value="">
+            </div>
             <div class="form-field">
               <label for="compName">Nama Lengkap Pelapor <span class="req">*</span></label>
-              <input type="text" id="compName" name="reporter_name" required placeholder="Contoh: Budi Santoso (Orang Tua Siswa)">
+              <input type="text" id="compName" name="reporter_name" required maxlength="150" placeholder="Contoh: Budi Santoso (Orang Tua Siswa)">
             </div>
             <div class="form-row-2">
               <div class="form-field">
                 <label for="compEmail">Alamat Email (Opsional)</label>
-                <input type="email" id="compEmail" name="email" placeholder="nama@email.com">
+                <input type="email" id="compEmail" name="email" maxlength="254" placeholder="nama@email.com">
               </div>
               <div class="form-field">
                 <label for="compWhatsapp">Nomor WhatsApp (Opsional)</label>
-                <input type="tel" id="compWhatsapp" name="whatsapp" placeholder="08123456789">
+                <input type="tel" id="compWhatsapp" name="whatsapp" maxlength="30" placeholder="08123456789">
               </div>
             </div>
             <div class="form-field">
@@ -111,16 +115,22 @@
             </div>
             <div class="form-field">
               <label for="compTitle">Judul Pengaduan <span class="req">*</span></label>
-              <input type="text" id="compTitle" name="title" required placeholder="Ringkasan singkat inti pengaduan">
+              <input type="text" id="compTitle" name="title" required maxlength="200" placeholder="Ringkasan singkat inti pengaduan">
             </div>
             <div class="form-field">
               <label for="compBody">Uraian Lengkap Pengaduan <span class="req">*</span></label>
-              <textarea id="compBody" name="body" rows="4" required placeholder="Uraikan secara jelas kejadian, tanggal perkiraan, lokasi, atau detail persoalan yang dilaporkan..."></textarea>
+              <textarea id="compBody" name="body" rows="4" required maxlength="5000" placeholder="Uraikan secara jelas kejadian, tanggal perkiraan, lokasi, atau detail persoalan yang dilaporkan..."></textarea>
             </div>
             <div class="form-field">
               <label for="compAttachment">Lampiran Bukti / Dokumen / Foto (Opsional)</label>
               <input type="file" id="compAttachment" name="attachment" accept="image/jpeg,image/png,image/webp,application/pdf">
               <small class="file-hint">Format file yang didukung: JPG, PNG, WebP, atau PDF (Maksimal 5 MB). File disimpan secara privat.</small>
+            </div>
+            <div class="form-field form-consent-field">
+              <label class="consent-checkbox-label" for="compConsent">
+                <input type="checkbox" id="compConsent" name="statement_consent" required>
+                <span>Saya menyatakan bahwa informasi yang disampaikan adalah benar dan bersedia dihubungi untuk tindak lanjut verifikasi bila diperlukan. <span class="req">*</span></span>
+              </label>
             </div>
             <div id="complaintMsg" class="form-status"></div>
             <button type="submit" id="submitComplaintBtn" class="btn primary full-width">Kirim Pengaduan</button>

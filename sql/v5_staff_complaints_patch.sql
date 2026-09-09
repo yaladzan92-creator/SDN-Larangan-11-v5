@@ -20,6 +20,8 @@ create table if not exists public.staff_profiles (
 -- Pastikan RLS aktif untuk staff_profiles
 alter table public.staff_profiles enable row level security;
 
+-- IMPORTANT: This policy model assumes all authenticated users are trusted school admins. Public signup MUST remain disabled.
+
 -- Policy staff_profiles: Publik hanya bisa membaca profil yang published (atau role authenticated)
 do $$ begin
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='staff_profiles' and policyname='public staff profiles read') then
