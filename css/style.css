@@ -11,3 +11,552 @@
 .social-link{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:9px;font-size:12px;font-weight:800;color:var(--navy);transition:.18s ease}
 .social-link:hover{transform:translateY(-1px);border-color:#b7cee8;color:var(--blue)}
 .social-link span{width:20px;height:20px;display:grid;place-items:center;border-radius:6px;background:#edf4fb;color:var(--blue);font-weight:900}
+
+/* =========================================
+   V5 Profil Pendidik & Tenaga Kependidikan
+   ========================================= */
+.staff-principal-wrap {
+  margin-bottom: 48px;
+}
+.principal-card {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 36px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 16px 40px rgba(17, 49, 79, 0.08);
+}
+.principal-photo-wrap {
+  width: 100%;
+  height: 380px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--soft);
+}
+.principal-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.principal-badge {
+  display: inline-block;
+  background: #edf5fc;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.principal-info h3 {
+  font-size: clamp(26px, 3.2vw, 36px);
+  margin: 0 0 6px;
+  color: var(--navy);
+  line-height: 1.15;
+}
+.principal-role {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 14px;
+}
+.principal-quote {
+  position: relative;
+  background: #fbfbf8;
+  border-left: 4px solid var(--gold);
+  border-radius: 0 14px 14px 0;
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-style: italic;
+  color: #2b3648;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.principal-bio {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 14px 0 20px;
+}
+
+/* Teachers Grid */
+.staff-section-title {
+  margin: 40px 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.staff-section-title h3 {
+  font-size: 24px;
+  margin: 0;
+  color: var(--navy);
+}
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+.staff-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(17, 49, 79, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.staff-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(17, 49, 79, 0.09);
+}
+.staff-thumb {
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+  background: #e9eef4;
+}
+.staff-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.staff-card:hover .staff-thumb img {
+  transform: scale(1.03);
+}
+.staff-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.staff-body h4 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: var(--navy);
+  line-height: 1.3;
+}
+.staff-role-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+.staff-subject-tag {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--soft);
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  align-self: flex-start;
+}
+.staff-quote-box {
+  background: #fafbfd;
+  border-left: 3px solid #b7cee8;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  font-style: italic;
+  color: #3b4b5e;
+  line-height: 1.5;
+  margin: 6px 0 12px;
+}
+.staff-actions {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.btn-view-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #edf5fc;
+  color: var(--blue);
+  border: 1px solid #d0e2f3;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-view-profile:hover {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+
+/* Pengawas Section */
+.supervisor-wrap {
+  margin-top: 48px;
+  background: #fbfcfe;
+  border: 1px solid #dce6f0;
+  border-radius: 22px;
+  padding: 28px;
+}
+.supervisor-header {
+  margin-bottom: 20px;
+}
+.supervisor-header h3 {
+  font-size: 22px;
+  margin: 4px 0 0;
+  color: var(--navy);
+}
+.supervisor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+.supervisor-card {
+  display: flex;
+  gap: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  align-items: center;
+}
+.supervisor-card .staff-thumb {
+  width: 110px;
+  height: 110px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.supervisor-card .staff-body {
+  padding: 0;
+}
+
+/* Staff Modal */
+.staff-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 25, 40, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.staff-modal-card {
+  width: min(650px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.25);
+}
+.staff-modal-close {
+  position: absolute;
+  right: 20px;
+  top: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: #f0f4f8;
+  color: var(--navy);
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  line-height: 1;
+}
+.staff-modal-close:hover {
+  background: #e2e8f0;
+}
+.staff-modal-content {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.staff-modal-photo {
+  width: 100%;
+  height: 250px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--soft);
+}
+.staff-modal-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.staff-modal-details h3 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  color: var(--navy);
+}
+.staff-modal-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue);
+  background: #edf5fc;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.staff-modal-subject {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.staff-modal-quote {
+  background: #fdfaf3;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-style: italic;
+  font-size: 14px;
+  color: #3b424f;
+  line-height: 1.6;
+}
+.staff-modal-bio {
+  color: #4a5568;
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 14px;
+}
+
+/* =========================================
+   V5 Pengaduan (Whistleblowing / Feedback)
+   ========================================= */
+.cta-pengaduan {
+  background: linear-gradient(135deg, #102c44, #1b4970);
+  color: #fff;
+  border-radius: 26px;
+  padding: 38px 42px;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  box-shadow: 0 16px 45px rgba(17, 49, 79, 0.12);
+}
+.cta-pengaduan h3 {
+  font-size: clamp(22px, 2.5vw, 30px);
+  margin: 0 0 8px;
+  color: #fff;
+}
+.cta-pengaduan p {
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
+  font-size: 15px;
+  max-width: 620px;
+}
+
+.complaint-section-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 40px;
+  align-items: start;
+}
+.complaint-info-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 32px;
+  box-shadow: 0 10px 30px rgba(17, 49, 79, 0.04);
+}
+.complaint-privacy-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 20px 0;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.complaint-privacy-banner .icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.complaint-privacy-banner p {
+  margin: 0;
+  font-size: 13px;
+  color: #166534;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.complaint-categories-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+.complaint-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.complaint-form-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 36px;
+  box-shadow: 0 12px 35px rgba(17, 49, 79, 0.05);
+}
+.complaint-form {
+  display: grid;
+  gap: 18px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.complaint-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+.complaint-form input,
+.complaint-form select,
+.complaint-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.complaint-form input:focus,
+.complaint-form select:focus,
+.complaint-form textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(33, 94, 147, 0.15);
+}
+.complaint-form textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+.complaint-form .file-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 4px;
+}
+.agreement-check {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  margin: 6px 0;
+}
+.agreement-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.agreement-check span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.45;
+}
+.complaint-status-box {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  display: none;
+}
+.complaint-status-box.success {
+  display: block;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+.complaint-status-box.error {
+  display: block;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Responsive updates for staff & complaints */
+@media (max-width: 1050px) {
+  .staff-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .principal-card {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .principal-photo-wrap {
+    height: 320px;
+  }
+  .staff-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .supervisor-grid {
+    grid-template-columns: 1fr;
+  }
+  .complaint-section-wrap {
+    grid-template-columns: 1fr;
+  }
+  .cta-pengaduan {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .staff-modal-content {
+    grid-template-columns: 1fr;
+  }
+  .staff-modal-photo {
+    height: 220px;
+  }
+}
+@media (max-width: 600px) {
+  .staff-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .principal-card,
+  .complaint-form-card,
+  .complaint-info-card {
+    padding: 20px;
+  }
+  .supervisor-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .supervisor-card .staff-thumb {
+    width: 100%;
+    height: 180px;
+  }
+}

@@ -15,7 +15,7 @@
   <div class="container nav">
     <a class="brand" href="#home"><img class="city-logo" id="brandLogo" src="assets/logo-sekolah.jpeg" alt="Logo SDN Larangan 11"><div><strong id="brandName">SDN LARANGAN 11</strong><span id="brandSubtitle">Kecamatan Larangan · Kota Tangerang</span></div></a>
     <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
-    <nav id="navMenu"><a href="#profil">Profil</a><a href="#program">Program</a><a href="#berita">Berita</a><a href="#pengumuman">Pengumuman</a><a href="#prestasi">Prestasi</a><a href="#galeri">Galeri</a><a href="#kontak">Kontak</a><a href="#lainnya">Lainnya</a></nav>
+    <nav id="navMenu"><a href="#profil">Profil</a><a href="#pendidik">Pendidik</a><a href="#program">Program</a><a href="#berita">Berita</a><a href="#pengumuman">Pengumuman</a><a href="#prestasi">Prestasi</a><a href="#galeri">Galeri</a><a href="#pengaduan">Pengaduan</a><a href="#kontak">Kontak</a><a href="#lainnya">Lainnya</a></nav>
   </div>
 </header>
 <main id="home">
@@ -23,11 +23,113 @@
 <section class="facts"><div class="container facts-grid"><article><strong id="statNpsn">20607216</strong><span>NPSN</span></article><article><strong id="statStatus">Negeri</strong><span>Status Sekolah</span></article><article><strong id="statStudents">—</strong><span>Peserta Didik</span></article><article><strong id="statStaff">—</strong><span>Pendidik & Tendik</span></article></div><div class="container"><small class="source-note">Data utama mengikuti data yang ditetapkan admin sekolah.</small></div></section>
 <section class="section" id="profil"><div class="container split"><div class="image-frame"><img id="profilePhoto" src="https://tangerangekspres.disway.id/upload/573156cd46f2508f175d17e17eeb0efa.jpeg" alt="Upacara siswa SDN Larangan 11"></div><div><span class="eyebrow">Profil sekolah</span><h2 id="profileTitle">Berakar di Larangan Utara, tumbuh bersama masyarakat.</h2><p id="profileDescription">SDN Larangan 11 merupakan sekolah dasar negeri di Kota Tangerang.</p><div class="profile-list" id="profileInfo"></div></div></div></section>
 <section class="section vision"><div class="container vision-grid"><div><span class="eyebrow light">Visi</span><h2 id="visionText">Membangun generasi berkarakter dan peduli lingkungan.</h2></div><div class="vision-card" id="missionText"></div></div></section>
+
+<section class="section staff-section" id="pendidik">
+  <div class="container">
+    <div class="section-head text-center">
+      <span class="eyebrow">Pendidik & Tenaga Kependidikan</span>
+      <h2>Profil Kepala Sekolah, Dewan Guru & Pengawas</h2>
+      <p class="section-lead">Pendidik berdedikasi tinggi yang membimbing putra-putri SDN Larangan 11 menuju generasi berakhlak mulia, cerdas, dan berkarakter.</p>
+    </div>
+    <div class="staff-tabs" id="staffTabs">
+      <button class="staff-tab active" data-role="all">Semua Pendidik</button>
+      <button class="staff-tab" data-role="principal">Kepala Sekolah</button>
+      <button class="staff-tab" data-role="teacher">Dewan Guru</button>
+      <button class="staff-tab" data-role="supervisor">Pengawas Sekolah</button>
+    </div>
+    <div id="staffList" class="staff-container"></div>
+  </div>
+</section>
+
 <section class="section soft" id="program"><div class="container"><div class="section-head"><span class="eyebrow">Program sekolah</span><h2>Pembelajaran yang utuh, aktif, dan dekat dengan kehidupan siswa.</h2></div><div class="cards three" id="programList"></div></div></section>
 <section class="section" id="berita"><div class="container"><div class="section-head row-head"><div><span class="eyebrow">Kabar sekolah</span><h2>Berita terbaru</h2></div><span class="subtle">Konten dikelola dari halaman Admin</span></div><div class="cards three" id="newsList"></div></div></section>
 <section class="section dark" id="pengumuman"><div class="container"><span class="eyebrow light">Pengumuman</span><h2>Informasi yang perlu diketahui orang tua dan siswa.</h2><div id="announcementList" class="announcement-list"></div></div></section>
 <section class="section" id="prestasi"><div class="container"><div class="section-head"><span class="eyebrow">Prestasi</span><h2>Apresiasi untuk setiap pencapaian.</h2></div><div class="cards three" id="achievementList"></div></div></section>
 <section class="section soft" id="galeri"><div class="container"><div class="section-head"><span class="eyebrow">Galeri</span><h2>Potret kegiatan SDN Larangan 11.</h2></div><div class="gallery" id="galleryList"></div></div></section>
+
+<section class="section" id="pengaduan">
+  <div class="container">
+    <div class="complaint-layout">
+      <div class="complaint-intro">
+        <span class="eyebrow">Layanan Aspirasi & Pengaduan</span>
+        <h2>Sampaikan Masukan, Kritik & Pengaduan Anda</h2>
+        <p class="complaint-lead">SDN Larangan 11 berkomitmen memberikan pelayanan pendidikan yang transparan, aman, dan berkualitas. Partisipasi Anda sangat berharga bagi kemajuan sekolah kami.</p>
+        <div class="complaint-guarantees">
+          <div class="guarantee-card">
+            <span class="guarantee-icon">🛡️</span>
+            <div>
+              <strong>Kerahasiaan Terjamin</strong>
+              <p>Identitas dan isi laporan Anda hanya dapat diakses oleh pimpinan dan admin resmi sekolah.</p>
+            </div>
+          </div>
+          <div class="guarantee-card">
+            <span class="guarantee-icon">⚡</span>
+            <div>
+              <strong>Respons Cepat & Terukur</strong>
+              <p>Setiap pengaduan akan ditinjau dan ditindaklanjuti secara proporsional sesuai ketentuan kedinasan.</p>
+            </div>
+          </div>
+          <div class="guarantee-card">
+            <span class="guarantee-icon">📋</span>
+            <div>
+              <strong>Aspirasi Membangun</strong>
+              <p>Menerima pengaduan sarana prasarana, kurikulum, pelayanan tata usaha, maupun ketertiban.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="complaint-form-wrapper">
+        <div class="complaint-form-card">
+          <h3>Formulir Pengaduan Publik</h3>
+          <p class="form-desc">Silakan lengkapi formulir di bawah ini dengan jelas dan benar.</p>
+          <form id="publicComplaintForm" class="complaint-form" novalidate>
+            <div class="form-field">
+              <label for="compName">Nama Lengkap Pelapor <span class="req">*</span></label>
+              <input type="text" id="compName" name="reporter_name" required placeholder="Contoh: Budi Santoso (Orang Tua Siswa)">
+            </div>
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="compEmail">Alamat Email (Opsional)</label>
+                <input type="email" id="compEmail" name="email" placeholder="nama@email.com">
+              </div>
+              <div class="form-field">
+                <label for="compWhatsapp">Nomor WhatsApp (Opsional)</label>
+                <input type="tel" id="compWhatsapp" name="whatsapp" placeholder="08123456789">
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="compCategory">Kategori Pengaduan <span class="req">*</span></label>
+              <select id="compCategory" name="category" required>
+                <option value="">-- Pilih Kategori --</option>
+                <option value="Sarana & Prasarana">Sarana & Prasarana Sekolah</option>
+                <option value="Pelayanan Guru & Pembelajaran">Pelayanan Guru & Pembelajaran</option>
+                <option value="Pelayanan Tata Usaha & Administrasi">Pelayanan Tata Usaha & Administrasi</option>
+                <option value="Ketertiban & Keamanan Lingkungan">Ketertiban & Keamanan Lingkungan</option>
+                <option value="Aspirasi & Usulan">Aspirasi & Usulan Program</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="compTitle">Judul Pengaduan <span class="req">*</span></label>
+              <input type="text" id="compTitle" name="title" required placeholder="Ringkasan singkat inti pengaduan">
+            </div>
+            <div class="form-field">
+              <label for="compBody">Uraian Lengkap Pengaduan <span class="req">*</span></label>
+              <textarea id="compBody" name="body" rows="4" required placeholder="Uraikan secara jelas kejadian, tanggal perkiraan, lokasi, atau detail persoalan yang dilaporkan..."></textarea>
+            </div>
+            <div class="form-field">
+              <label for="compAttachment">Lampiran Bukti / Dokumen / Foto (Opsional)</label>
+              <input type="file" id="compAttachment" name="attachment" accept="image/jpeg,image/png,image/webp,application/pdf">
+              <small class="file-hint">Format file yang didukung: JPG, PNG, WebP, atau PDF (Maksimal 5 MB). File disimpan secara privat.</small>
+            </div>
+            <div id="complaintMsg" class="form-status"></div>
+            <button type="submit" id="submitComplaintBtn" class="btn primary full-width">Kirim Pengaduan</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <section class="section" id="kontak"><div class="container contact-grid"><div><span class="eyebrow">Kontak & lokasi</span><h2 id="contactSchool">SDN Larangan 11</h2><p id="contactAddress">Jl. H. Majuk No. 180, Larangan Utara, Kecamatan Larangan, Kota Tangerang, Banten 15154.</p><a class="btn primary" id="mapLink" target="_blank" rel="noopener" href="#">Buka Google Maps</a><div class="social-block"><span class="eyebrow">Media Sosial</span><div id="socialLinks" class="social-links"></div></div></div><div class="info-card" id="contactInfo"></div></div></section>
 <section class="section soft" id="lainnya"><div class="container"><div class="section-head"><span class="eyebrow">Informasi lainnya</span><h2>Rombel, ekstrakurikuler, jadwal, dan dokumen.</h2></div><h3 class="mini-heading">Rombongan Belajar</h3><div id="rombelList" class="table-wrap"></div><h3 class="mini-heading">Ekstrakurikuler</h3><div id="eskulList" class="cards three"></div><h3 class="mini-heading">Kegiatan Ekstrakurikuler</h3><div id="eskulActivityList" class="cards three"></div><h3 class="mini-heading">Jadwal</h3><div id="scheduleList" class="cards three"></div><h3 class="mini-heading">Dokumen Publik</h3><div id="documentList" class="cards three"></div></div></section>
 <section class="section cta-spmb"><div class="container cta-inner"><div><span class="eyebrow light">Penerimaan Murid Baru</span><h2 id="spmbTitle">Informasi SPMB</h2><p id="spmbDescription"></p></div><a id="spmbLink" class="btn gold" target="_blank" rel="noopener">Portal SPMB</a></div></section>

@@ -28,11 +28,28 @@ let cache = {
   document: [],
   schedule: [],
   staging: [],
-  sources: []
+  sources: [],
+  staff: [],
+  complaints: []
 };
 let profile = {};
 
 const defs = {
+  staff: {
+    table: "staff_profiles",
+    title: "Profil Pendidik & Tenaga Kependidikan",
+    fields: [
+      ["name", "Nama Lengkap & Gelar *", "text"],
+      ["role", "Kategori / Jabatan *", "role_select"],
+      ["subject", "Bidang / Mapel (contoh: Guru Kelas IV-A / PJOK / Pembina)", "text"],
+      ["photo_url", "URL Foto (Otomatis terisi jika upload file)", "text"],
+      ["photo_file", "Upload Foto Profil", "file"],
+      ["quote", "Kutipan / Pesan Pribadi (Opsional)", "textarea"],
+      ["bio", "Deskripsi Singkat / Profil", "textarea"],
+      ["sort_order", "Nomor Urut Tampilan (Angka lebih kecil tampil di awal)", "number"],
+      ["published", "Tampilkan di Website Publik", "checkbox"]
+    ]
+  },
   rombel: {
     table: "class_groups",
     title: "Rombel",
@@ -344,7 +361,9 @@ async function loadAll() {
       documentRes,
       scheduleRes,
       stagingRes,
-      sourcesRes
+      sourcesRes,
+      staffRes,
+      complaintsRes
     ] = await Promise.all([
       client.from("school_profile").select("*").eq("id", 1).maybeSingle(),
       client.from("class_groups").select("*").order("grade", { ascending: true }),
@@ -358,7 +377,9 @@ async function loadAll() {
       client.from("documents").select("*").order("created_at", { ascending: false }),
       client.from("school_schedules").select("*").order("sort_order", { ascending: true }),
       client.from("sync_staging").select("*").order("created_at", { ascending: false }),
-      client.from("sync_sources").select("*").order("created_at", { ascending: false })
+      client.from("sync_sources").select("*").order("created_at", { ascending: false }),
+      client.from("staff_profiles").select("*").order("sort_order", { ascending: true }),
+      client.from("complaints").select("*").order("created_at", { ascending: false })
     ]);
 
     if (pRes.error) {
@@ -367,18 +388,20 @@ async function loadAll() {
       profile = pRes.data;
     }
 
-    cache.rombel = rombelRes.data || [];
-    cache.eskul = eskulRes.data || [];
-    cache.activity = activityRes.data || [];
-    cache.program = programRes.data || [];
-    cache.news = newsRes.data || [];
-    cache.announcement = announcementRes.data || [];
-    cache.achievement = achievementRes.data || [];
-    cache.gallery = galleryRes.data || [];
-    cache.document = documentRes.data || [];
-    cache.schedule = scheduleRes.data || [];
-    cache.staging = stagingRes.data || [];
-    cache.sources = sourcesRes.data || [];
+    cache.rombel = rombelRes?.data || [];
+    cache.eskul = eskulRes?.data || [];
+    cache.activity = activityRes?.data || [];
+    cache.program = programRes?.data || [];
+    cache.news = newsRes?.data || [];
+    cache.announcement = announcementRes?.data || [];
+    cache.achievement = achievementRes?.data || [];
+    cache.gallery = galleryRes?.data || [];
+    cache.document = documentRes?.data || [];
+    cache.schedule = scheduleRes?.data || [];
+    cache.staging = stagingRes?.data || [];
+    cache.sources = sourcesRes?.data || [];
+    cache.staff = staffRes?.data || [];
+    cache.complaints = complaintsRes?.data || [];
 
     fillProfile();
     renderAll();
@@ -507,13 +530,110 @@ function renderAll() {
   if ($("kpiRombel")) $("kpiRombel").textContent = cache.rombel.length;
   if ($("kpiEskul")) $("kpiEskul").textContent = cache.eskul.length;
   if ($("kpiStaging")) $("kpiStaging").textContent = cache.staging.filter(x => x.status === "pending").length;
+  if ($("kpiComplaints")) $("kpiComplaints").textContent = cache.complaints.filter(x => x.status === "new").length;
+  if ($("kpiStaff")) $("kpiStaff").textContent = cache.staff.length;
 
   for (const k of Object.keys(defs)) {
-    renderTable(k);
+    if (k === "staff") {
+      renderStaff();
+    } else {
+      renderTable(k);
+    }
   }
+  renderComplaints();
   renderStaging();
   renderSources();
 }
+
+function renderStaff() {
+  const box = $("staffEditor");
+  if (!box) return;
+
+  if (!cache.staff?.length) {
+    box.innerHTML = '<p class="empty">Belum ada data profil pendidik. Klik “+ Tambah Profil”.</p>';
+    return;
+  }
+
+  const roleBadges = {
+    principal: '<span class="badge-role badge-principal">Kepala Sekolah</span>',
+    teacher: '<span class="badge-role badge-teacher">Guru</span>',
+    supervisor: '<span class="badge-role badge-supervisor">Pengawas Sekolah</span>'
+  };
+
+  const defaultAvatar = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100%" height="100%" fill="#e2e8f0"/>
+  <circle cx="50" cy="38" r="18" fill="#94a3b8"/>
+  <path d="M18 86c0-18 14-32 32-32s32 14 32 32" fill="#94a3b8"/>
+</svg>
+`);
+
+  box.innerHTML = `
+    <div class="table-wrap">
+      <table class="editor-table">
+        <thead>
+          <tr>
+            <th>Pendidik</th>
+            <th>Kategori</th>
+            <th>Bidang / Mapel</th>
+            <th>Urutan</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${cache.staff.map(s => `
+            <tr>
+              <td>
+                <div class="thumb-cell">
+                  <img src="${esc(s.photo_url || defaultAvatar)}" alt="${esc(s.name)}" class="thumb-img" onerror="this.src='${defaultAvatar}'">
+                  <div>
+                    <b>${esc(s.name)}</b>
+                    ${s.quote ? `<div style="font-size:11px;color:#71869a;font-style:italic;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">“${esc(s.quote)}”</div>` : ""}
+                  </div>
+                </div>
+              </td>
+              <td>${roleBadges[s.role] || esc(s.role)}</td>
+              <td>${esc(s.subject || "—")}</td>
+              <td>${s.sort_order ?? 0}</td>
+              <td>
+                ${s.published
+                  ? '<span class="badge-published">Tayang</span>'
+                  : '<span class="badge-draft">Draft</span>'
+                }
+              </td>
+              <td>
+                <div class="editor-actions">
+                  <button class="secondary" onclick="togglePublishStaff('${s.id}', ${s.published})">
+                    ${s.published ? "Jadikan Draft" : "Tayangkan"}
+                  </button>
+                  <button class="secondary" onclick="openEditor('staff','${s.id}')">Edit</button>
+                  <button class="danger" onclick="deleteItem('staff','${s.id}')">Hapus</button>
+                </div>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function togglePublishStaff(id, currentStatus) {
+  try {
+    const client = getClient();
+    const { error } = await client
+      .from("staff_profiles")
+      .update({ published: !currentStatus, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw error;
+    await loadAll();
+  } catch (err) {
+    console.error("[SDN11 Admin] togglePublishStaff error:", err);
+    alert("Gagal mengubah status publish: " + err.message);
+  }
+}
+window.togglePublishStaff = togglePublishStaff;
 
 function renderTable(type) {
   const d = defs[type];
@@ -570,7 +690,7 @@ function openEditor(type, id) {
   const item = id ? cache[type].find(x => String(x.id) === String(id)) : {};
   if ($("modalTitle")) $("modalTitle").textContent = (id ? "Edit " : "Tambah ") + d.title;
   if ($("modalForm")) {
-    $("modalForm").innerHTML = d.fields.map(f => fieldHTML(f, item[f[0]], type)).join("") + `
+    $("modalForm").innerHTML = d.fields.map(f => fieldHTML(f, item[f[0]], type, item)).join("") + `
       <div class="form-actions">
         <button type="button" class="secondary" onclick="closeModal()">Batal</button>
         <button class="primary" type="submit">Simpan</button>
@@ -582,7 +702,7 @@ function openEditor(type, id) {
 }
 window.openEditor = openEditor;
 
-function fieldHTML(f, v, type) {
+function fieldHTML(f, v, type, item = {}) {
   const [name, label, kind] = f;
   if (kind === "checkbox") {
     return `<label class="full"><input type="checkbox" name="${name}" ${v !== false ? "checked" : ""}> ${esc(label)}</label>`;
@@ -590,8 +710,27 @@ function fieldHTML(f, v, type) {
   if (kind === "textarea") {
     return `<label class="full">${esc(label)}<textarea name="${name}">${esc(v || "")}</textarea></label>`;
   }
+  if (kind === "role_select") {
+    return `
+      <label class="full">${esc(label)}
+        <select name="${name}" required>
+          <option value="principal" ${v === "principal" ? "selected" : ""}>Kepala Sekolah</option>
+          <option value="teacher" ${v === "teacher" || !v ? "selected" : ""}>Guru</option>
+          <option value="supervisor" ${v === "supervisor" ? "selected" : ""}>Pengawas Sekolah</option>
+        </select>
+      </label>
+    `;
+  }
   if (kind === "file") {
-    return `<label class="full">${esc(label)}<input type="file" name="${name}"><span class="file-note">File akan disimpan ke Supabase Storage.</span></label>`;
+    const isStaff = type === "staff";
+    const existingPhoto = (isStaff && item.photo_url) ? item.photo_url : null;
+    return `
+      <label class="full">${esc(label)}
+        <input type="file" name="${name}" accept="${isStaff ? "image/jpeg,image/png,image/webp" : "*/*"}">
+        <span class="file-note">${isStaff ? "Format JPG/PNG/WebP maks 5MB. Disimpan ke folder staff/ bucket school-media." : "File akan disimpan ke Supabase Storage."}</span>
+        ${existingPhoto ? `<div class="photo-preview-box"><img src="${esc(existingPhoto)}" alt="Preview"><small>Foto tersimpan saat ini</small></div>` : ""}
+      </label>
+    `;
   }
   if (kind === "eskul") {
     return `
@@ -648,6 +787,10 @@ async function saveEditor(e, type, id) {
     const docFile = fd.get("file_upload");
     if (docFile && docFile.size) {
       payload.file_url = await upload(docFile, "documents", true);
+    }
+    const photoFile = fd.get("photo_file");
+    if (photoFile && photoFile.size) {
+      payload.photo_url = await upload(photoFile, "staff", false);
     }
 
     const req = id
@@ -1025,6 +1168,247 @@ async function rejectCandidate(id) {
   }
 }
 window.rejectCandidate = rejectCandidate;
+
+let currentComplaintFilter = "all";
+
+document.querySelectorAll(".complaints-filter button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".complaints-filter button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentComplaintFilter = btn.dataset.filter || "all";
+    renderComplaints();
+  };
+});
+
+function renderComplaints() {
+  const box = $("complaintsList");
+  if (!box) return;
+
+  const list = currentComplaintFilter === "all"
+    ? cache.complaints
+    : cache.complaints.filter(c => c.status === currentComplaintFilter);
+
+  if (!list.length) {
+    box.innerHTML = `<p class="empty">Tidak ada data pengaduan pada filter ini.</p>`;
+    return;
+  }
+
+  const statusLabels = {
+    new: "Baru",
+    reviewing: "Sedang Ditinjau",
+    resolved: "Selesai",
+    rejected: "Ditolak"
+  };
+
+  box.innerHTML = `
+    <div class="table-wrap">
+      <table class="editor-table">
+        <thead>
+          <tr>
+            <th>Tanggal Masuk</th>
+            <th>Nama Pelapor</th>
+            <th>Kategori</th>
+            <th>Judul Pengaduan</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(c => `
+            <tr>
+              <td>${new Date(c.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
+              <td><b>${esc(c.reporter_name)}</b></td>
+              <td><span class="badge-role badge-teacher">${esc(c.category)}</span></td>
+              <td><b>${esc(c.title)}</b></td>
+              <td><span class="badge-status ${esc(c.status)}">${esc(statusLabels[c.status] || c.status)}</span></td>
+              <td>
+                <div class="editor-actions">
+                  <button class="secondary" onclick="openComplaintDetail('${c.id}')">Buka Detail</button>
+                  <button class="danger" onclick="deleteComplaint('${c.id}')">Hapus</button>
+                </div>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function openComplaintDetail(id) {
+  const c = cache.complaints.find(x => String(x.id) === String(id));
+  if (!c) return;
+
+  const modal = $("complaintModal");
+  const body = $("complaintModalBody");
+  if (!modal || !body) return;
+
+  let attachmentHtml = "<span class='hint'>Tidak ada lampiran file.</span>";
+  if (c.attachment_url) {
+    attachmentHtml = `<span class='hint' id='attachStatus'>Menyiapkan tautan aman...</span>`;
+  }
+
+  const statusLabels = {
+    new: "Baru",
+    reviewing: "Sedang Ditinjau",
+    resolved: "Selesai",
+    rejected: "Ditolak"
+  };
+
+  body.innerHTML = `
+    <div class="detail-view">
+      <div class="detail-item">
+        <label>Waktu Laporan</label>
+        <div>${new Date(c.created_at).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })}</div>
+      </div>
+      <div class="detail-item">
+        <label>Nama Pelapor</label>
+        <div style="font-size:16px;"><b>${esc(c.reporter_name)}</b></div>
+      </div>
+      <div class="detail-item" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label>Email</label>
+          <div>${c.email ? `<a href="mailto:${esc(c.email)}" style="color:#0d6efd;font-weight:700;">${esc(c.email)}</a>` : "<span class='hint'>Tidak diisi</span>"}</div>
+        </div>
+        <div>
+          <label>Nomor WhatsApp</label>
+          <div>${c.whatsapp ? `<a href="https://wa.me/${c.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" rel="noopener" style="color:#16a34a;font-weight:700;">${esc(c.whatsapp)} ↗</a>` : "<span class='hint'>Tidak diisi</span>"}</div>
+        </div>
+      </div>
+      <div class="detail-item">
+        <label>Kategori Pengaduan</label>
+        <div><span class="badge-role badge-teacher">${esc(c.category)}</span></div>
+      </div>
+      <div class="detail-item">
+        <label>Judul</label>
+        <div style="font-size:16px;font-weight:700;color:#102c42;">${esc(c.title)}</div>
+      </div>
+      <div class="detail-item">
+        <label>Isi Pengaduan</label>
+        <pre>${esc(c.body)}</pre>
+      </div>
+      <div class="detail-item">
+        <label>Lampiran Pengaduan (Private Storage)</label>
+        <div id="attachmentBox">${attachmentHtml}</div>
+      </div>
+      <form id="complaintDetailForm" style="margin-top:14px;border-top:1px solid #edf1f4;padding-top:18px;">
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:800;color:#536d82;margin-bottom:6px;">Ubah Status Pengaduan:
+            <select id="updateStatusSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid #cbd5e1;margin-top:6px;">
+              <option value="new" ${c.status === "new" ? "selected" : ""}>Baru</option>
+              <option value="reviewing" ${c.status === "reviewing" ? "selected" : ""}>Sedang Ditinjau</option>
+              <option value="resolved" ${c.status === "resolved" ? "selected" : ""}>Selesai</option>
+              <option value="rejected" ${c.status === "rejected" ? "selected" : ""}>Ditolak</option>
+            </select>
+          </label>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:800;color:#536d82;margin-bottom:6px;">Catatan Internal Admin:
+            <textarea id="updateAdminNote" style="width:100%;min-height:95px;padding:10px;border-radius:8px;border:1px solid #cbd5e1;margin-top:6px;" placeholder="Tulis catatan penanganan internal (hanya terlihat oleh admin)...">${esc(c.admin_note || "")}</textarea>
+          </label>
+          <small class="hint">Catatan ini TIDAK PERNAH ditampilkan di halaman website publik.</small>
+        </div>
+        <div class="form-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;">
+          <button type="button" class="danger" onclick="deleteComplaint('${c.id}')">Hapus Pengaduan</button>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="secondary" onclick="closeComplaintModal()">Tutup</button>
+            <button type="submit" class="primary" id="saveComplaintBtn">Simpan Perubahan</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.classList.remove("hidden");
+
+  // Fetch signed URL if attachment exists
+  if (c.attachment_url) {
+    const attachBox = $("attachmentBox");
+    try {
+      const client = getClient();
+      let fileUrl = c.attachment_url;
+      if (!fileUrl.startsWith("http")) {
+        const { data, error } = await client.storage
+          .from("complaint-attachments")
+          .createSignedUrl(c.attachment_url, 3600);
+        if (error) throw error;
+        fileUrl = data?.signedUrl || fileUrl;
+      }
+      if (attachBox) {
+        attachBox.innerHTML = `
+          <a href="${esc(fileUrl)}" target="_blank" rel="noopener" class="attachment-btn">
+            📎 Buka / Unduh Lampiran Pengaduan ↗
+          </a>
+        `;
+      }
+    } catch (err) {
+      console.warn("[SDN11 Admin] createSignedUrl error:", err);
+      if (attachBox) {
+        attachBox.innerHTML = `<span class="warn">Gagal memuat lampiran: ${esc(err.message)}</span>`;
+      }
+    }
+  }
+
+  const form = $("complaintDetailForm");
+  if (form) {
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const saveBtn = $("saveComplaintBtn");
+      if (saveBtn) saveBtn.disabled = true;
+
+      const newStatus = $("updateStatusSelect")?.value;
+      const newNote = $("updateAdminNote")?.value?.trim() || null;
+
+      try {
+        const client = getClient();
+        const { error } = await client
+          .from("complaints")
+          .update({
+            status: newStatus,
+            admin_note: newNote,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", c.id);
+
+        if (error) throw error;
+
+        closeComplaintModal();
+        await loadAll();
+      } catch (err) {
+        alert("Gagal memperbarui status pengaduan: " + err.message);
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+      }
+    };
+  }
+}
+window.openComplaintDetail = openComplaintDetail;
+
+async function deleteComplaint(id) {
+  if (!confirm("Hapus data pengaduan ini secara permanen?")) return;
+  try {
+    const client = getClient();
+    const { error } = await client.from("complaints").delete().eq("id", id);
+    if (error) throw error;
+    closeComplaintModal();
+    await loadAll();
+  } catch (err) {
+    console.error("[SDN11 Admin] deleteComplaint error:", err);
+    alert("Gagal menghapus pengaduan: " + err.message);
+  }
+}
+window.deleteComplaint = deleteComplaint;
+
+function closeComplaintModal() {
+  if ($("complaintModal")) $("complaintModal").classList.add("hidden");
+}
+window.closeComplaintModal = closeComplaintModal;
+if ($("complaintModalClose")) $("complaintModalClose").onclick = closeComplaintModal;
+if ($("complaintModal")) {
+  $("complaintModal").addEventListener("click", e => {
+    if (e.target === $("complaintModal")) closeComplaintModal();
+  });
+}
 
 // Safe top-level initialization
 authCheck().catch(err => {

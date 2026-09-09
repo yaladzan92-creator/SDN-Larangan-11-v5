@@ -15,13 +15,13 @@
 <div id="appView" class="app-shell hidden">
 <aside><div class="side-brand"><div class="brand-mark">L11</div><b>SDN Larangan 11</b></div>
 <nav>
-<a href="#dashboard">📊 Dashboard</a><a href="#sekolah">🏫 Data Sekolah</a><a href="#rombel">🏷️ Rombongan Belajar</a><a href="#eskul">🏆 Ekstrakurikuler</a><a href="#kegiatan-eskul">🎯 Kegiatan Eskul</a><a href="#program">📚 Program</a><a href="#berita">📰 Berita</a><a href="#pengumuman">📢 Pengumuman</a><a href="#prestasi">🥇 Prestasi</a><a href="#galeri">🖼️ Galeri</a><a href="#dokumen">📄 Dokumen</a><a href="#jadwal">📅 Jadwal</a><a href="#sync">🔄 Sinkronisasi</a><a href="#settings">⚙️ Pengaturan</a>
+<a href="#dashboard">📊 Dashboard</a><a href="#sekolah">🏫 Data Sekolah</a><a href="#pendidik">👩‍🏫 Profil Pendidik</a><a href="#pengaduan">📬 Pengaduan</a><a href="#rombel">🏷️ Rombongan Belajar</a><a href="#eskul">🏆 Ekstrakurikuler</a><a href="#kegiatan-eskul">🎯 Kegiatan Eskul</a><a href="#program">📚 Program</a><a href="#berita">📰 Berita</a><a href="#pengumuman">📢 Pengumuman</a><a href="#prestasi">🥇 Prestasi</a><a href="#galeri">🖼️ Galeri</a><a href="#dokumen">📄 Dokumen</a><a href="#jadwal">📅 Jadwal</a><a href="#sync">🔄 Sinkronisasi</a><a href="#settings">⚙️ Pengaturan</a>
 </nav><button id="logoutBtn" class="logout">Keluar</button></aside>
 
 <main class="admin-main">
 <header class="topbar"><div><span class="eyebrow">ADMIN PANEL</span><h1>Dashboard Pengelolaan Sekolah</h1></div><a href="../" class="view-site">Lihat Website ↗</a></header>
 
-<section id="dashboard" class="panel"><div class="kpis"><div><span>Peserta Didik</span><strong id="kpiStudents">—</strong><small>Data profil aktif</small></div><div><span>Rombel</span><strong id="kpiRombel">0</strong><small>Dikelola admin</small></div><div><span>Ekstrakurikuler</span><strong id="kpiEskul">0</strong><small>Dikelola admin</small></div><div><span>Data Staging</span><strong id="kpiStaging">0</strong><small>Menunggu verifikasi</small></div></div></section>
+<section id="dashboard" class="panel"><div class="kpis"><div><span>Peserta Didik</span><strong id="kpiStudents">—</strong><small>Data profil aktif</small></div><div><span>Rombel</span><strong id="kpiRombel">0</strong><small>Dikelola admin</small></div><div><span>Pengaduan Baru</span><strong id="kpiComplaints">0</strong><small>Belum diproses</small></div><div><span>Pendidik & Tendik</span><strong id="kpiStaff">0</strong><small>Kepsek, Guru, Pengawas</small></div><div><span>Ekstrakurikuler</span><strong id="kpiEskul">0</strong><small>Dikelola admin</small></div><div><span>Data Staging</span><strong id="kpiStaging">0</strong><small>Menunggu verifikasi</small></div></div></section>
 
 <section id="sekolah" class="panel">
 <div class="panel-head"><div><span class="eyebrow">DATA SEKOLAH</span><h2>Identitas & Profil Sekolah</h2></div><button class="primary" id="saveProfileBtn">Simpan</button></div>
@@ -42,6 +42,25 @@
 <label>Deskripsi SPMB<textarea id="schoolSpmbDescription"></textarea></label>
 <div class="logo-manager full"><div><b>Logo Sekolah</b><p class="hint">Logo dipakai pada header, hero, profil, dan kontak website publik.</p><img id="schoolLogoPreview" src="../assets/logo-sekolah.jpeg" alt="Logo sekolah"></div><div><label>Upload Logo Baru<input id="schoolLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label><button type="button" class="secondary" id="uploadLogoBtn">Upload & Gunakan Logo</button><small>Disimpan ke Supabase Storage bucket school-media.</small></div></div><div class="logo-manager full"><div><b>Foto Hero / Gedung Sekolah</b><p class="hint">Foto ini menjadi gambar besar di halaman beranda seperti desain Professional V2.</p><img id="schoolHeroPreview" src="https://cdn-sekolah.annibuku.com/20607216/1.jpg" alt="Foto SDN Larangan 11"></div><div><label>Upload Foto Hero Baru<input id="schoolHeroFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="secondary" id="uploadHeroBtn">Upload & Gunakan Foto Hero</button><small>Admin dapat mengganti foto kapan saja tanpa mengubah kode.</small></div></div>
 </div><div id="profileMsg" class="msg"></div></section>
+
+<section id="pendidik" class="panel">
+<div class="panel-head"><div><span class="eyebrow">PENDIDIK & TENDIK</span><h2>Profil Pendidik & Tenaga Kependidikan</h2></div><button class="primary" data-add="staff">+ Tambah Profil</button></div>
+<p class="hint">Kelola profil Kepala Sekolah, Dewan Guru, dan Pengawas Pembina. Urutkan berdasarkan prioritas tampilan.</p>
+<div id="staffEditor"></div>
+</section>
+
+<section id="pengaduan" class="panel">
+<div class="panel-head"><div><span class="eyebrow">LAYANAN PENGADUAN</span><h2>Laporan & Aspirasi Masuk</h2></div></div>
+<p class="hint">Data pengaduan bersifat privat dan tidak pernah ditampilkan ke publik. Anda dapat memperbarui status penanganan dan menulis catatan internal.</p>
+<div class="complaints-filter">
+<button class="secondary active" data-filter="all">Semua</button>
+<button class="secondary" data-filter="new">Baru</button>
+<button class="secondary" data-filter="reviewing">Sedang Ditinjau</button>
+<button class="secondary" data-filter="resolved">Selesai</button>
+<button class="secondary" data-filter="rejected">Ditolak</button>
+</div>
+<div id="complaintsList"></div>
+</section>
 
 <section id="rombel" class="panel"><div class="panel-head"><div><span class="eyebrow">ROMBEL</span><h2>Rombongan Belajar</h2></div><button class="primary" data-add="rombel">+ Tambah Rombel</button></div><p class="hint">Simpan tahun ajaran, semester, jumlah siswa, komposisi L/P, wali kelas, ruang dan sumber data.</p><div id="rombelEditor"></div></section>
 
@@ -70,6 +89,14 @@
 </main></div>
 
 <div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-x">×</button><h2 id="modalTitle"></h2><form id="modalForm" class="modal-form"></form></div></div>
+
+<div id="complaintModal" class="modal hidden">
+  <div class="modal-card">
+    <button id="complaintModalClose" class="modal-x">×</button>
+    <h2 id="complaintModalTitle">Detail Pengaduan</h2>
+    <div id="complaintModalBody"></div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
