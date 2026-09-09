@@ -24,7 +24,7 @@
 <section id="dashboard" class="panel"><div class="kpis"><div><span>Peserta Didik</span><strong id="kpiStudents">—</strong><small>Data profil aktif</small></div><div><span>Rombel</span><strong id="kpiRombel">0</strong><small>Dikelola admin</small></div><div><span>Pengaduan Baru</span><strong id="kpiComplaints">0</strong><small>Belum diproses</small></div><div><span>Pendidik & Tendik</span><strong id="kpiStaff">0</strong><small>Kepsek, Guru, Pengawas</small></div><div><span>Ekstrakurikuler</span><strong id="kpiEskul">0</strong><small>Dikelola admin</small></div><div><span>Data Staging</span><strong id="kpiStaging">0</strong><small>Menunggu verifikasi</small></div></div></section>
 
 <section id="sekolah" class="panel">
-<div class="panel-head"><div><span class="eyebrow">DATA SEKOLAH</span><h2>Identitas & Profil Sekolah</h2></div><button class="primary" id="saveProfileBtn">Simpan</button></div>
+<div class="panel-head"><div><span class="eyebrow">DATA SEKOLAH</span><h2>Identitas & Profil Sekolah</h2></div><div class="save-profile-action"><span id="saveProfileInlineStatus" class="save-inline-status"></span><button class="primary" id="saveProfileBtn">Simpan Perubahan</button></div></div>
 <div class="form-grid">
 <label>Nama Sekolah<input id="schoolName"></label><label>NPSN<input id="schoolNpsn"></label>
 <label>Status<input id="schoolStatus"></label><label>Jenjang<input id="schoolLevel"></label>
@@ -88,7 +88,7 @@
 <section id="settings" class="panel"><div class="panel-head"><div><span class="eyebrow">KONFIGURASI</span><h2>Pengaturan Produksi</h2></div></div><p>Frontend hanya memakai Project URL + anon/publishable key. Jangan pernah menyimpan <code>service_role</code> key di GitHub.</p></section>
 </main></div>
 
-<div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-x">×</button><h2 id="modalTitle"></h2><form id="modalForm" class="modal-form"></form></div></div>
+<div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-x">×</button><h2 id="modalTitle"></h2><div id="modalMsg" class="modal-msg msg"></div><form id="modalForm" class="modal-form"></form></div></div>
 
 <div id="complaintModal" class="modal hidden">
   <div class="modal-card">
@@ -97,6 +97,8 @@
     <div id="complaintModalBody"></div>
   </div>
 </div>
+
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>

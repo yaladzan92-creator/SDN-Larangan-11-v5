@@ -34,6 +34,215 @@ let cache = {
 };
 let profile = {};
 
+// --- NOTIFICATION & FEEDBACK SYSTEM ---
+function notify(message, type = "info", title = "") {
+  let container = $("toastContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    container.className = "toast-container";
+    container.setAttribute("aria-live", "polite");
+    document.body.appendChild(container);
+  }
+
+  const icons = {
+    success: "✅",
+    error: "❌",
+    warning: "⚠️",
+    info: "ℹ️"
+  };
+
+  const defaultTitles = {
+    success: "Berhasil",
+    error: "Gagal",
+    warning: "Peringatan",
+    info: "Informasi"
+  };
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.setAttribute("role", "alert");
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || "ℹ️"}</span>
+    <div class="toast-body">
+      <div class="toast-title">${esc(title || defaultTitles[type] || "Pemberitahuan")}</div>
+      <div class="toast-msg">${esc(message)}</div>
+    </div>
+    <button type="button" class="toast-close" aria-label="Tutup">×</button>
+  `;
+
+  const closeBtn = toast.querySelector(".toast-close");
+  const removeToast = () => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(100%)";
+    setTimeout(() => toast.remove(), 250);
+  };
+  if (closeBtn) closeBtn.onclick = removeToast;
+
+  container.appendChild(toast);
+
+  const duration = type === "error" ? 8500 : type === "warning" ? 6000 : 4000;
+  const timer = setTimeout(removeToast, duration);
+  toast.addEventListener("mouseenter", () => clearTimeout(timer));
+}
+window.notify = notify;
+
+function setButtonState(btn, state, normalText = "Simpan Perubahan") {
+  if (!btn) return;
+  btn.classList.remove("btn-loading", "btn-clean", "btn-dirty", "btn-success", "btn-error");
+  if (state === "loading") {
+    btn.disabled = true;
+    btn.textContent = "Menyimpan...";
+    btn.classList.add("btn-loading");
+  } else if (state === "clean") {
+    btn.disabled = true;
+    btn.textContent = "Tidak Ada Perubahan";
+    btn.classList.add("btn-clean");
+  } else if (state === "dirty") {
+    btn.disabled = false;
+    btn.textContent = "Simpan Perubahan";
+    btn.classList.add("btn-dirty");
+  } else if (state === "success") {
+    btn.disabled = false;
+    btn.textContent = "✓ Tersimpan";
+    btn.classList.add("btn-success");
+  } else if (state === "error") {
+    btn.disabled = false;
+    btn.textContent = "Gagal — Coba Lagi";
+    btn.classList.add("btn-error");
+  } else {
+    btn.disabled = false;
+    btn.textContent = normalText;
+  }
+}
+
+function showModalMsg(text, type = "error") {
+  const el = $("modalMsg");
+  if (!el) return;
+  el.className = `modal-msg msg show ${type}`;
+  el.textContent = text;
+}
+
+function clearModalMsg() {
+  const el = $("modalMsg");
+  if (!el) return;
+  el.className = "modal-msg msg";
+  el.textContent = "";
+}
+
+function setProfileInlineStatus(text, type = "") {
+  const statusEl = $("saveProfileInlineStatus");
+  const msgEl = $("profileMsg");
+  if (statusEl) {
+    statusEl.className = "save-inline-status" + (type ? ` show status-${type}` : "");
+    statusEl.textContent = text;
+  }
+  if (msgEl) {
+    msgEl.className = "msg" + (type ? ` ${type}` : "");
+    msgEl.textContent = text;
+  }
+}
+
+// --- FIELD VALIDATION & NORMALIZATION ---
+function normalizeSocialUrl(url, platform = "") {
+  if (!url) return null;
+  let val = String(url).trim();
+  if (!val) return null;
+
+  const lower = val.toLowerCase();
+  if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
+    throw new Error(`URL ${platform} menggunakan protokol berbahaya dan tidak diizinkan.`);
+  }
+
+  if (val.startsWith("@")) {
+    if (platform === "Instagram") val = `https://instagram.com/${val.slice(1)}`;
+    else if (platform === "TikTok") val = `https://tiktok.com/${val}`;
+    else if (platform === "YouTube") val = `https://youtube.com/${val}`;
+  }
+
+  if (!/^https?:\/\//i.test(val)) {
+    val = "https://" + val;
+  }
+
+  try {
+    const parsed = new URL(val);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error(`URL ${platform} harus menggunakan protokol https:// atau http://.`);
+    }
+    return parsed.href;
+  } catch (err) {
+    throw new Error(`Format URL ${platform} tidak valid. Contoh: https://${platform.toLowerCase().replace(/\s+/g, "")}.com/...`);
+  }
+}
+
+function validateEmail(email) {
+  if (!email) return null;
+  const val = String(email).trim();
+  if (!val) return null;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+    throw new Error("Format alamat email sekolah tidak valid (contoh: sekolah@sdnlarangan11.sch.id).");
+  }
+  return val;
+}
+
+function validateNpsn(npsn) {
+  if (!npsn) return null;
+  const val = String(npsn).trim();
+  if (!val) return null;
+  if (!/^\d{8}$/.test(val)) {
+    throw new Error("NPSN harus berupa 8 digit angka.");
+  }
+  return val;
+}
+
+// --- DIRTY STATE TRACKING FOR DATA SEKOLAH ---
+let initialProfileSnapshot = "";
+
+const PROFILE_FIELD_IDS = [
+  "schoolName", "schoolNpsn", "schoolStatus", "schoolLevel",
+  "schoolAccreditation", "schoolPrincipal", "schoolStudents", "schoolStaff",
+  "schoolAddress", "schoolCity", "schoolPhone", "schoolEmail",
+  "schoolInstagram", "schoolFacebook", "schoolYoutube", "schoolTiktok",
+  "schoolWhatsapp", "schoolMaps", "schoolProfileTitle", "schoolDescription",
+  "schoolVision", "schoolMission", "schoolHeroSubtitle", "schoolSpmbTitle",
+  "schoolSpmbUrl", "schoolSpmbDescription"
+];
+
+function getProfileFormData() {
+  const data = {};
+  for (const id of PROFILE_FIELD_IDS) {
+    data[id] = $(id)?.value?.trim() || "";
+  }
+  return data;
+}
+
+function checkProfileDirty() {
+  const currentSnapshot = JSON.stringify(getProfileFormData());
+  const isDirty = currentSnapshot !== initialProfileSnapshot;
+  const btn = $("saveProfileBtn");
+  if (!btn) return;
+  if (btn.classList.contains("btn-loading")) return;
+
+  if (isDirty) {
+    setButtonState(btn, "dirty", "Simpan Perubahan");
+  } else {
+    setButtonState(btn, "clean", "Tidak Ada Perubahan");
+  }
+}
+
+let profileListenersInitialized = false;
+function initProfileDirtyTracking() {
+  if (profileListenersInitialized) return;
+  profileListenersInitialized = true;
+  PROFILE_FIELD_IDS.forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener("input", checkProfileDirty);
+      el.addEventListener("change", checkProfileDirty);
+    }
+  });
+}
+
 const defs = {
   staff: {
     table: "staff_profiles",
@@ -297,21 +506,53 @@ async function upload(file, folder, isDocument = false) {
   const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
   const ALLOWED_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".svg"];
 
+  const ALLOWED_DOC_TYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  ];
+  const ALLOWED_DOC_EXTS = [".pdf", ".doc", ".docx", ".xls", ".xlsx"];
+
+  const REJECTED_EXTS = [
+    ".exe", ".js", ".mjs", ".html", ".htm", ".zip", ".rar", ".7z",
+    ".bat", ".cmd", ".sh", ".php", ".py", ".vbs", ".scr", ".com", ".dll", ".apk"
+  ];
+
   const fileName = file.name || "file";
   const fileExt = fileName.includes(".") ? "." + fileName.split(".").pop().toLowerCase() : "";
+
+  // Reject executable or dangerous file extensions explicitly
+  if (REJECTED_EXTS.includes(fileExt)) {
+    throw new Error(`File dengan ekstensi '${fileExt}' dilarang demi keamanan sistem.`);
+  }
 
   if (isDocument) {
     if (file.size > MAX_DOC_SIZE) {
       throw new Error("Ukuran dokumen melebihi batas maksimal 10 MB.");
     }
+    if (file.type) {
+      if (!ALLOWED_DOC_TYPES.includes(file.type.toLowerCase())) {
+        throw new Error(`Format dokumen tidak didukung (MIME: ${file.type}). Harap gunakan PDF, DOC, DOCX, XLS, atau XLSX.`);
+      }
+    } else {
+      if (!ALLOWED_DOC_EXTS.includes(fileExt)) {
+        throw new Error("Format file dokumen tidak didukung. Harap gunakan file dengan ekstensi .pdf, .doc, .docx, .xls, atau .xlsx.");
+      }
+    }
   } else {
     if (file.size > MAX_IMAGE_SIZE) {
       throw new Error("Ukuran gambar melebihi batas maksimal 5 MB.");
     }
-    const mimeValid = file.type ? ALLOWED_IMAGE_TYPES.includes(file.type) : false;
-    const extValid = ALLOWED_IMAGE_EXTS.includes(fileExt);
-    if (!mimeValid && !extValid) {
-      throw new Error("Format file gambar tidak didukung. Gunakan format JPG, PNG, WebP, atau SVG.");
+    if (file.type) {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+        throw new Error(`Format file gambar tidak didukung (MIME: ${file.type}). Gunakan format JPG, PNG, WebP, atau SVG.`);
+      }
+    } else {
+      if (!ALLOWED_IMAGE_EXTS.includes(fileExt)) {
+        throw new Error("Format file gambar tidak didukung. Gunakan file dengan ekstensi .jpg, .png, .webp, atau .svg.");
+      }
     }
   }
 
@@ -344,6 +585,7 @@ async function loadAll() {
     client = getClient();
   } catch (err) {
     console.error("[SDN11 Admin] loadAll gagal:", err.message);
+    notify(err.message, "error", "Koneksi Bermasalah");
     return;
   }
 
@@ -382,9 +624,34 @@ async function loadAll() {
       client.from("complaints").select("*").order("created_at", { ascending: false })
     ]);
 
-    if (pRes.error) {
-      console.warn("[SDN11 Admin] school_profile load error:", pRes.error.message);
-    } else if (pRes.data) {
+    // Error audit per module
+    const moduleChecks = [
+      { name: "Data Sekolah", res: pRes },
+      { name: "Rombel", res: rombelRes },
+      { name: "Ekstrakurikuler", res: eskulRes },
+      { name: "Kegiatan Eskul", res: activityRes },
+      { name: "Program", res: programRes },
+      { name: "Berita", res: newsRes },
+      { name: "Pengumuman", res: announcementRes },
+      { name: "Prestasi", res: achievementRes },
+      { name: "Galeri", res: galleryRes },
+      { name: "Dokumen", res: documentRes },
+      { name: "Jadwal", res: scheduleRes },
+      { name: "Data Staging", res: stagingRes },
+      { name: "Sumber Sinkronisasi", res: sourcesRes },
+      { name: "Profil Pendidik", res: staffRes },
+      { name: "Pengaduan", res: complaintsRes }
+    ];
+
+    const failedModules = [];
+    for (const m of moduleChecks) {
+      if (m.res?.error) {
+        console.error(`[SDN11 Admin] Modul ${m.name} gagal dimuat:`, m.res.error.message);
+        failedModules.push(m.name);
+      }
+    }
+
+    if (pRes?.data) {
       profile = pRes.data;
     }
 
@@ -405,8 +672,17 @@ async function loadAll() {
 
     fillProfile();
     renderAll();
+
+    if (failedModules.length > 0) {
+      notify(
+        `Sebagian data gagal dimuat: ${failedModules.join(", ")}. Modul yang berhasil tetap ditampilkan.`,
+        "warning",
+        "Pemuatan Sebagian"
+      );
+    }
   } catch (err) {
     console.error("[SDN11 Admin] Error saat memuat data:", err);
+    notify("Terjadi kesalahan saat memuat data aplikasi.", "error");
   }
 }
 
@@ -458,6 +734,11 @@ function fillProfile() {
   if (heroPreview) {
     heroPreview.src = profile.hero_image_url || "https://cdn-sekolah.annibuku.com/20607216/1.jpg";
   }
+
+  // Record initial snapshot for dirty state detection
+  initialProfileSnapshot = JSON.stringify(getProfileFormData());
+  initProfileDirtyTracking();
+  checkProfileDirty();
 }
 
 const saveProfileBtn = $("saveProfileBtn");
@@ -467,60 +748,121 @@ if (saveProfileBtn) {
     try {
       client = getClient();
     } catch (err) {
-      if ($("profileMsg")) $("profileMsg").textContent = err.message;
+      setProfileInlineStatus(err.message, "error");
+      notify(err.message, "error", "Koneksi Supabase");
+      return;
+    }
+
+    // Input validation & URL normalization
+    let npsnVal, emailVal, igVal, fbVal, ytVal, ttVal, waVal, mapsVal, spmbUrlVal;
+    try {
+      npsnVal = validateNpsn($("schoolNpsn")?.value);
+      emailVal = validateEmail($("schoolEmail")?.value);
+      igVal = normalizeSocialUrl($("schoolInstagram")?.value, "Instagram");
+      fbVal = normalizeSocialUrl($("schoolFacebook")?.value, "Facebook");
+      ytVal = normalizeSocialUrl($("schoolYoutube")?.value, "YouTube");
+      ttVal = normalizeSocialUrl($("schoolTiktok")?.value, "TikTok");
+      waVal = normalizeSocialUrl($("schoolWhatsapp")?.value, "WhatsApp");
+      mapsVal = normalizeSocialUrl($("schoolMaps")?.value, "Google Maps");
+      spmbUrlVal = normalizeSocialUrl($("schoolSpmbUrl")?.value, "SPMB");
+    } catch (valErr) {
+      setProfileInlineStatus(valErr.message, "warning");
+      notify(valErr.message, "warning", "Validasi Input");
+      return;
+    }
+
+    const studentsNum = +$("schoolStudents")?.value;
+    if ($("schoolStudents")?.value && (isNaN(studentsNum) || studentsNum < 0)) {
+      setProfileInlineStatus("Jumlah siswa tidak boleh negatif.", "warning");
+      notify("Jumlah siswa tidak boleh negatif.", "warning", "Validasi Input");
+      return;
+    }
+
+    const staffNum = +$("schoolStaff")?.value;
+    if ($("schoolStaff")?.value && (isNaN(staffNum) || staffNum < 0)) {
+      setProfileInlineStatus("Jumlah guru & tendik tidak boleh negatif.", "warning");
+      notify("Jumlah guru & tendik tidak boleh negatif.", "warning", "Validasi Input");
       return;
     }
 
     const payload = {
       id: 1,
-      name: $("schoolName")?.value || "",
-      npsn: $("schoolNpsn")?.value || "",
-      status: $("schoolStatus")?.value || "",
-      level: $("schoolLevel")?.value || "",
-      accreditation: $("schoolAccreditation")?.value || "",
-      principal: $("schoolPrincipal")?.value || "",
-      students: +$("schoolStudents")?.value || null,
-      staff: +$("schoolStaff")?.value || null,
-      address: $("schoolAddress")?.value || "",
-      city: $("schoolCity")?.value || "",
-      phone: $("schoolPhone")?.value || "",
-      email: $("schoolEmail")?.value || "",
-      instagram_url: $("schoolInstagram")?.value || null,
-      facebook_url: $("schoolFacebook")?.value || null,
-      youtube_url: $("schoolYoutube")?.value || null,
-      tiktok_url: $("schoolTiktok")?.value || null,
-      whatsapp_url: $("schoolWhatsapp")?.value || null,
-      maps_url: $("schoolMaps")?.value || "",
-      profile_title: $("schoolProfileTitle")?.value || "",
-      description: $("schoolDescription")?.value || "",
-      vision: $("schoolVision")?.value || "",
+      name: $("schoolName")?.value.trim() || "",
+      npsn: npsnVal,
+      status: $("schoolStatus")?.value.trim() || "",
+      level: $("schoolLevel")?.value.trim() || "",
+      accreditation: $("schoolAccreditation")?.value.trim() || "",
+      principal: $("schoolPrincipal")?.value.trim() || "",
+      students: $("schoolStudents")?.value ? studentsNum : null,
+      staff: $("schoolStaff")?.value ? staffNum : null,
+      address: $("schoolAddress")?.value.trim() || "",
+      city: $("schoolCity")?.value.trim() || "",
+      phone: $("schoolPhone")?.value.trim() || "",
+      email: emailVal,
+      instagram_url: igVal,
+      facebook_url: fbVal,
+      youtube_url: ytVal,
+      tiktok_url: ttVal,
+      whatsapp_url: waVal,
+      maps_url: mapsVal || "",
+      profile_title: $("schoolProfileTitle")?.value.trim() || "",
+      description: $("schoolDescription")?.value.trim() || "",
+      vision: $("schoolVision")?.value.trim() || "",
       mission: ($("schoolMission")?.value || "")
         .split("\n")
         .map(x => x.trim())
         .filter(Boolean),
-      hero_subtitle: $("schoolHeroSubtitle")?.value || "",
-      spmb_title: $("schoolSpmbTitle")?.value || "",
-      spmb_url: $("schoolSpmbUrl")?.value || "",
-      spmb_description: $("schoolSpmbDescription")?.value || "",
+      hero_subtitle: $("schoolHeroSubtitle")?.value.trim() || "",
+      spmb_title: $("schoolSpmbTitle")?.value.trim() || "",
+      spmb_url: spmbUrlVal || "",
+      spmb_description: $("schoolSpmbDescription")?.value.trim() || "",
       logo_url: profile.logo_url || null,
       hero_image_url: profile.hero_image_url || null,
       updated_at: new Date().toISOString()
     };
 
-    saveProfileBtn.disabled = true;
-    if ($("profileMsg")) $("profileMsg").textContent = "Menyimpan profil…";
+    setButtonState(saveProfileBtn, "loading");
+    setProfileInlineStatus("Menyimpan data sekolah...", "loading");
 
     try {
       const { error } = await client.from("school_profile").upsert(payload);
       if (error) throw error;
-      profile = payload;
-      if ($("profileMsg")) $("profileMsg").textContent = "Profil berhasil disimpan.";
+
+      // Verify After Save: read-back from database
+      const { data: verifiedData, error: readErr } = await client
+        .from("school_profile")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+      if (readErr || !verifiedData) {
+        console.warn("[SDN11 Admin] Read-back verification warning:", readErr);
+        profile = payload;
+        setProfileInlineStatus("Data berhasil dikirim tetapi belum dapat diverifikasi.", "warning");
+        notify("Data profil berhasil dikirim, namun verifikasi pembacaan ulang gagal.", "warning");
+        setButtonState(saveProfileBtn, "success");
+        setTimeout(() => checkProfileDirty(), 2500);
+      } else {
+        profile = verifiedData;
+        fillProfile(); // Refreshes form & resets initial snapshot
+        setProfileInlineStatus("Data profil berhasil disimpan dan terverifikasi.", "success");
+        notify("Data profil sekolah berhasil disimpan dan diperbarui.", "success");
+        setButtonState(saveProfileBtn, "success");
+        setTimeout(() => {
+          setButtonState(saveProfileBtn, "clean");
+          setProfileInlineStatus("");
+        }, 2500);
+      }
       renderAll();
     } catch (err) {
       console.error("[SDN11 Admin] Gagal simpan profil:", err);
-      if ($("profileMsg")) $("profileMsg").textContent = "Gagal menyimpan: " + err.message;
-    } finally {
-      saveProfileBtn.disabled = false;
+      let userFriendlyMsg = "Gagal menyimpan data sekolah: " + (err.message || "Kesalahan tidak dikenal.");
+      if (err.message && (err.message.includes("does not exist") || err.message.includes("column") || err.message.includes("schema cache"))) {
+        userFriendlyMsg = "Gagal menyimpan: Kolom database belum kompatibel. Jalankan sql/v5_admin_input_compatibility_patch.sql di SQL Editor Supabase.";
+      }
+      setProfileInlineStatus(userFriendlyMsg, "error");
+      notify(userFriendlyMsg, "error", "Gagal Menyimpan");
+      setButtonState(saveProfileBtn, "error");
     }
   };
 }
@@ -627,10 +969,14 @@ async function togglePublishStaff(id, currentStatus) {
       .update({ published: !currentStatus, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (error) throw error;
+    notify(
+      currentStatus ? "Profil pendidik disimpan sebagai draft." : "Profil pendidik berhasil ditayangkan ke website publik.",
+      "success"
+    );
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] togglePublishStaff error:", err);
-    alert("Gagal mengubah status publish: " + err.message);
+    notify("Gagal mengubah status publish: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.togglePublishStaff = togglePublishStaff;
@@ -687,13 +1033,14 @@ function openEditor(type, id) {
   const d = defs[type];
   if (!d) return;
 
+  clearModalMsg();
   const item = id ? cache[type].find(x => String(x.id) === String(id)) : {};
   if ($("modalTitle")) $("modalTitle").textContent = (id ? "Edit " : "Tambah ") + d.title;
   if ($("modalForm")) {
     $("modalForm").innerHTML = d.fields.map(f => fieldHTML(f, item[f[0]], type, item)).join("") + `
       <div class="form-actions">
         <button type="button" class="secondary" onclick="closeModal()">Batal</button>
-        <button class="primary" type="submit">Simpan</button>
+        <button class="primary" type="submit" id="modalSubmitBtn">Simpan</button>
       </div>
     `;
     $("modalForm").onsubmit = e => saveEditor(e, type, id);
@@ -758,15 +1105,72 @@ async function saveEditor(e, type, id) {
   try {
     client = getClient();
   } catch (err) {
-    alert(err.message);
+    showModalMsg(err.message, "error");
+    notify(err.message, "error", "Koneksi Supabase");
     return;
   }
 
-  const submitBtn = e.target.querySelector('button.primary');
-  if (submitBtn) submitBtn.disabled = true;
+  const submitBtn = e.target.querySelector('button.primary') || $("modalSubmitBtn");
+  const fd = new FormData(e.target);
+
+  // Field validation
+  const requiredValidation = {
+    staff: [["name", "Nama lengkap & gelar wajib diisi."]],
+    rombel: [["name", "Nama rombel wajib diisi."]],
+    eskul: [["name", "Nama ekstrakurikuler wajib diisi."]],
+    activity: [
+      ["extracurricular_id", "Ekstrakurikuler wajib dipilih."],
+      ["title", "Judul kegiatan wajib diisi."],
+      ["activity_date", "Tanggal kegiatan wajib diisi."]
+    ],
+    program: [["title", "Nama program sekolah wajib diisi."]],
+    news: [["title", "Judul berita wajib diisi."]],
+    announcement: [["title", "Judul pengumuman wajib diisi."]],
+    achievement: [["title", "Judul prestasi wajib diisi."]],
+    gallery: [["title", "Judul foto galeri wajib diisi."]],
+    document: [["title", "Nama dokumen wajib diisi."]],
+    schedule: [["title", "Judul / kegiatan jadwal sekolah wajib diisi."]]
+  };
+
+  const rules = requiredValidation[type] || [];
+  for (const [fName, fMsg] of rules) {
+    const rawVal = fd.get(fName);
+    if (!rawVal || !String(rawVal).trim()) {
+      showModalMsg(fMsg, "warning");
+      notify(fMsg, "warning", "Validasi Form");
+      const el = e.target.querySelector(`[name="${fName}"]`);
+      if (el) el.focus();
+      return;
+    }
+  }
+
+  // Media requirements for new gallery and documents
+  if (!id && type === "gallery") {
+    const urlVal = fd.get("image_url");
+    const fileVal = fd.get("image_file");
+    if ((!urlVal || !String(urlVal).trim()) && (!fileVal || !fileVal.size)) {
+      showModalMsg("Pilih file foto atau masukkan URL foto untuk galeri.", "warning");
+      notify("Pilih file foto atau masukkan URL foto untuk galeri.", "warning", "Validasi Form");
+      return;
+    }
+  }
+  if (!id && type === "document") {
+    const urlVal = fd.get("file_url");
+    const fileVal = fd.get("file_upload");
+    if ((!urlVal || !String(urlVal).trim()) && (!fileVal || !fileVal.size)) {
+      showModalMsg("Pilih file dokumen atau masukkan URL dokumen.", "warning");
+      notify("Pilih file dokumen atau masukkan URL dokumen.", "warning", "Validasi Form");
+      return;
+    }
+  }
+
+  clearModalMsg();
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Menyimpan...";
+  }
 
   try {
-    const fd = new FormData(e.target);
     const payload = {};
     for (const f of d.fields) {
       const [name, , kind] = f;
@@ -776,7 +1180,7 @@ async function saveEditor(e, type, id) {
       else if (kind === "date" && fd.get(name) && ["news", "announcement"].includes(type)) {
         payload[name] = fd.get(name) + "T00:00:00+07:00";
       } else {
-        payload[name] = fd.get(name) || null;
+        payload[name] = fd.get(name) ? String(fd.get(name)).trim() : null;
       }
     }
 
@@ -801,32 +1205,41 @@ async function saveEditor(e, type, id) {
     if (error) throw error;
 
     closeModal();
+    notify(`Data ${d.title} berhasil disimpan.`, "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] saveEditor error:", err);
-    alert(err.message || "Gagal menyimpan data.");
+    showModalMsg("Gagal menyimpan: " + (err.message || "Kesalahan tidak dikenal"), "error");
+    notify("Gagal menyimpan: " + (err.message || "Kesalahan tidak dikenal"), "error", "Gagal Menyimpan");
   } finally {
-    if (submitBtn) submitBtn.disabled = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Simpan";
+    }
   }
 }
 
 async function deleteItem(type, id) {
-  if (!confirm("Hapus data ini?")) return;
+  const d = defs[type];
+  const itemTitle = d?.title || "data ini";
+  if (!confirm(`Hapus ${itemTitle}? Tindakan ini tidak dapat dibatalkan.`)) return;
+
   try {
     const client = getClient();
-    const d = defs[type];
     if (!d) throw new Error("Tipe data tidak dikenal.");
     const { error } = await client.from(d.table).delete().eq("id", id);
     if (error) throw error;
+    notify(`Data ${itemTitle} berhasil dihapus.`, "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] deleteItem error:", err);
-    alert(err.message || "Gagal menghapus data.");
+    notify("Gagal menghapus data: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.deleteItem = deleteItem;
 
 function closeModal() {
+  clearModalMsg();
   if ($("modal")) $("modal").classList.add("hidden");
 }
 window.closeModal = closeModal;
@@ -858,19 +1271,20 @@ if (uploadLogoBtn) {
   uploadLogoBtn.onclick = async () => {
     const file = $("schoolLogoFile")?.files?.[0];
     if (!file) {
-      if ($("profileMsg")) $("profileMsg").textContent = "Pilih file logo terlebih dahulu.";
+      notify("Pilih file gambar logo terlebih dahulu.", "warning");
       return;
     }
     let client;
     try {
       client = getClient();
     } catch (err) {
-      if ($("profileMsg")) $("profileMsg").textContent = err.message;
+      notify(err.message, "error", "Koneksi Supabase");
       return;
     }
 
     uploadLogoBtn.disabled = true;
-    if ($("profileMsg")) $("profileMsg").textContent = "Mengupload logo…";
+    const originalText = uploadLogoBtn.textContent;
+    uploadLogoBtn.textContent = "Mengunggah...";
 
     try {
       const url = await upload(file, "branding", false);
@@ -881,12 +1295,13 @@ if (uploadLogoBtn) {
       if (error) throw error;
       profile.logo_url = url;
       if ($("schoolLogoPreview")) $("schoolLogoPreview").src = url;
-      if ($("profileMsg")) $("profileMsg").textContent = "Logo berhasil diupload dan dipakai di website.";
+      notify("Logo sekolah berhasil diunggah dan diperbarui di website.", "success");
     } catch (err) {
       console.error("[SDN11 Admin] Gagal upload logo:", err);
-      if ($("profileMsg")) $("profileMsg").textContent = "Gagal upload logo: " + err.message;
+      notify("Gagal mengunggah logo: " + (err.message || "Kesalahan tidak dikenal"), "error");
     } finally {
       uploadLogoBtn.disabled = false;
+      uploadLogoBtn.textContent = originalText;
     }
   };
 }
@@ -896,19 +1311,20 @@ if (uploadHeroBtn) {
   uploadHeroBtn.onclick = async () => {
     const file = $("schoolHeroFile")?.files?.[0];
     if (!file) {
-      if ($("profileMsg")) $("profileMsg").textContent = "Pilih file foto hero terlebih dahulu.";
+      notify("Pilih file gambar hero terlebih dahulu.", "warning");
       return;
     }
     let client;
     try {
       client = getClient();
     } catch (err) {
-      if ($("profileMsg")) $("profileMsg").textContent = err.message;
+      notify(err.message, "error", "Koneksi Supabase");
       return;
     }
 
     uploadHeroBtn.disabled = true;
-    if ($("profileMsg")) $("profileMsg").textContent = "Mengupload foto hero…";
+    const originalText = uploadHeroBtn.textContent;
+    uploadHeroBtn.textContent = "Mengunggah...";
 
     try {
       const url = await upload(file, "branding/hero", false);
@@ -919,12 +1335,13 @@ if (uploadHeroBtn) {
       if (error) throw error;
       profile.hero_image_url = url;
       if ($("schoolHeroPreview")) $("schoolHeroPreview").src = url;
-      if ($("profileMsg")) $("profileMsg").textContent = "Foto hero berhasil diupload dan dipakai di beranda.";
+      notify("Foto banner hero berhasil diunggah dan diterapkan di beranda.", "success");
     } catch (err) {
       console.error("[SDN11 Admin] Gagal upload foto hero:", err);
-      if ($("profileMsg")) $("profileMsg").textContent = "Gagal upload foto hero: " + err.message;
+      notify("Gagal mengunggah foto banner: " + (err.message || "Kesalahan tidak dikenal"), "error");
     } finally {
       uploadHeroBtn.disabled = false;
+      uploadHeroBtn.textContent = originalText;
     }
   };
 }
@@ -936,7 +1353,7 @@ if (addSourceBtn) {
     try {
       client = getClient();
     } catch (err) {
-      alert(err.message);
+      notify(err.message, "error", "Koneksi Supabase");
       return;
     }
 
@@ -949,11 +1366,14 @@ if (addSourceBtn) {
       .filter(x => SYNC_PROFILE_FIELDS.has(x));
 
     if (!name || !source_url) {
-      alert("Nama dan URL sumber wajib diisi.");
+      notify("Nama dan URL sumber wajib diisi.", "warning", "Validasi Input");
       return;
     }
 
     addSourceBtn.disabled = true;
+    const originalText = addSourceBtn.textContent;
+    addSourceBtn.textContent = "Menyimpan...";
+
     try {
       const { error } = await client.from("sync_sources").insert({
         name,
@@ -967,12 +1387,14 @@ if (addSourceBtn) {
       if ($("sourceName")) $("sourceName").value = "";
       if ($("sourceUrl")) $("sourceUrl").value = "";
       if ($("sourceFields")) $("sourceFields").value = "";
+      notify("Sumber sinkronisasi berhasil ditambahkan.", "success");
       await loadAll();
     } catch (err) {
       console.error("[SDN11 Admin] addSource error:", err);
-      alert(err.message || "Gagal menyimpan sumber.");
+      notify("Gagal menyimpan sumber: " + (err.message || "Kesalahan tidak dikenal"), "error");
     } finally {
       addSourceBtn.disabled = false;
+      addSourceBtn.textContent = originalText;
     }
   };
 }
@@ -1009,24 +1431,26 @@ async function toggleSource(id, enabled) {
       .update({ enabled, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (error) throw error;
+    notify(enabled ? "Sumber sinkronisasi diaktifkan." : "Sumber sinkronisasi dinonaktifkan.", "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] toggleSource error:", err);
-    alert(err.message || "Gagal mengubah status sumber.");
+    notify("Gagal mengubah status sumber: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.toggleSource = toggleSource;
 
 async function deleteSource(id) {
-  if (!confirm("Hapus sumber ini?")) return;
+  if (!confirm("Hapus sumber sinkronisasi ini?")) return;
   try {
     const client = getClient();
     const { error } = await client.from("sync_sources").delete().eq("id", id);
     if (error) throw error;
+    notify("Sumber sinkronisasi berhasil dihapus.", "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] deleteSource error:", err);
-    alert(err.message || "Gagal menghapus sumber.");
+    notify("Gagal menghapus sumber: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.deleteSource = deleteSource;
@@ -1041,10 +1465,13 @@ if (smartSyncBtn) {
       if ($("syncResult")) {
         $("syncResult").innerHTML = `<p class="warn">${esc(err.message)}</p>`;
       }
+      notify(err.message, "error", "Koneksi Supabase");
       return;
     }
 
     smartSyncBtn.disabled = true;
+    const originalText = smartSyncBtn.textContent;
+    smartSyncBtn.textContent = "Sinkronisasi berjalan...";
     if ($("syncResult")) {
       $("syncResult").innerHTML = "<p>Memeriksa sumber terdaftar…</p>";
     }
@@ -1064,14 +1491,18 @@ if (smartSyncBtn) {
       if ($("syncResult")) {
         $("syncResult").innerHTML = `<p>Smart Sync selesai. ${esc(data?.candidates ?? 0)} kandidat perubahan ditemukan dari ${esc(data?.checked ?? 0)} sumber.</p>`;
       }
+      notify(`Smart Sync selesai. Ditemukan ${data?.candidates ?? 0} kandidat data baru.`, "success");
       await loadAll();
     } catch (err) {
       console.error("[SDN11 Admin] smartSync error:", err);
+      const errMsg = "Smart Sync gagal: " + (err.message || "Pastikan Edge Function school-sync sudah aktif.");
       if ($("syncResult")) {
-        $("syncResult").innerHTML = `<p class="warn">Smart Sync gagal: ${esc(err.message)}. Pastikan Edge Function school-sync sudah dideploy dan V4 patch SQL sudah dijalankan.</p>`;
+        $("syncResult").innerHTML = `<p class="warn">${esc(errMsg)}</p>`;
       }
+      notify(errMsg, "error", "Smart Sync");
     } finally {
       smartSyncBtn.disabled = false;
+      smartSyncBtn.textContent = originalText;
     }
   };
 }
@@ -1126,7 +1557,7 @@ function valueText(v) {
 async function applyCandidate(id) {
   const x = cache.staging.find(i => i.id === id);
   if (!x || !SYNC_PROFILE_FIELDS.has(x.field_name)) {
-    alert("Field ini tidak diizinkan untuk diterapkan otomatis.");
+    notify("Field ini tidak diizinkan untuk diterapkan otomatis.", "warning");
     return;
   }
 
@@ -1145,10 +1576,11 @@ async function applyCandidate(id) {
       .eq("id", id);
     if (stageError) throw stageError;
 
+    notify(`Data untuk ${x.field_name} berhasil diterapkan ke profil sekolah.`, "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] applyCandidate error:", err);
-    alert(err.message || "Gagal menerapkan data kandidat.");
+    notify("Gagal menerapkan data kandidat: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.applyCandidate = applyCandidate;
@@ -1161,10 +1593,11 @@ async function rejectCandidate(id) {
       .update({ status: "rejected", reviewed_at: new Date().toISOString() })
       .eq("id", id);
     if (error) throw error;
+    notify("Kandidat perubahan data telah ditolak.", "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] rejectCandidate error:", err);
-    alert(err.message || "Gagal menolak kandidat.");
+    notify("Gagal menolak kandidat: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.rejectCandidate = rejectCandidate;
@@ -1354,7 +1787,11 @@ async function openComplaintDetail(id) {
     form.onsubmit = async (e) => {
       e.preventDefault();
       const saveBtn = $("saveComplaintBtn");
-      if (saveBtn) saveBtn.disabled = true;
+      const originalText = saveBtn ? saveBtn.textContent : "Simpan";
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Menyimpan...";
+      }
 
       const newStatus = $("updateStatusSelect")?.value;
       const newNote = $("updateAdminNote")?.value?.trim() || null;
@@ -1373,11 +1810,16 @@ async function openComplaintDetail(id) {
         if (error) throw error;
 
         closeComplaintModal();
+        notify("Status pengaduan berhasil diperbarui.", "success");
         await loadAll();
       } catch (err) {
-        alert("Gagal memperbarui status pengaduan: " + err.message);
+        console.error("[SDN11 Admin] update complaint error:", err);
+        notify("Gagal memperbarui status pengaduan: " + (err.message || "Kesalahan tidak dikenal"), "error");
       } finally {
-        if (saveBtn) saveBtn.disabled = false;
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+        }
       }
     };
   }
@@ -1391,10 +1833,11 @@ async function deleteComplaint(id) {
     const { error } = await client.from("complaints").delete().eq("id", id);
     if (error) throw error;
     closeComplaintModal();
+    notify("Pengaduan berhasil dihapus.", "success");
     await loadAll();
   } catch (err) {
     console.error("[SDN11 Admin] deleteComplaint error:", err);
-    alert("Gagal menghapus pengaduan: " + err.message);
+    notify("Gagal menghapus pengaduan: " + (err.message || "Kesalahan tidak dikenal"), "error");
   }
 }
 window.deleteComplaint = deleteComplaint;
