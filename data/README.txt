@@ -1,0 +1,1 @@
+Data publik tidak lagi dibaca dari JSON statis. Semua konten produksi dibaca dari Supabase.

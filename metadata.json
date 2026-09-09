@@ -1,0 +1,6 @@
+{
+  "name": "SDN Larangan 11 | Kota Tangerang",
+  "description": "Portal informasi SDN Larangan 11, Kecamatan Larangan, Kota Tangerang.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

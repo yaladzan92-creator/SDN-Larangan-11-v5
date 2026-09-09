@@ -1,0 +1,16 @@
+{
+  "name": "sdn-larangan-11-web",
+  "version": "4.1.0",
+  "description": "Portal informasi dan website resmi SDN Larangan 11 Kota Tangerang",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'Build complete'",
+    "lint": "echo 'Lint complete'"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

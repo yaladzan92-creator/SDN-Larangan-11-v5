@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin | SDN Larangan 11</title><link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<div id="loginView" class="login-shell">
+  <div class="login-card"><div class="brand-mark">L11</div><h1>Admin SDN Larangan 11</h1><p>Masuk untuk mengelola konten website.</p>
+    <form id="loginForm"><label>Email Admin<input id="email" type="email" required></label><label>Password<input id="password" type="password" required></label><button class="primary" type="submit">Masuk</button></form>
+    <div id="loginMsg" class="msg"></div><small>Akun dibuat melalui Supabase Authentication. Tidak ada mode demo pada versi produksi.</small>
+  </div>
+</div>
+
+<div id="appView" class="app-shell hidden">
+<aside><div class="side-brand"><div class="brand-mark">L11</div><b>SDN Larangan 11</b></div>
+<nav>
+<a href="#dashboard">📊 Dashboard</a><a href="#sekolah">🏫 Data Sekolah</a><a href="#rombel">🏷️ Rombongan Belajar</a><a href="#eskul">🏆 Ekstrakurikuler</a><a href="#kegiatan-eskul">🎯 Kegiatan Eskul</a><a href="#program">📚 Program</a><a href="#berita">📰 Berita</a><a href="#pengumuman">📢 Pengumuman</a><a href="#prestasi">🥇 Prestasi</a><a href="#galeri">🖼️ Galeri</a><a href="#dokumen">📄 Dokumen</a><a href="#jadwal">📅 Jadwal</a><a href="#sync">🔄 Sinkronisasi</a><a href="#settings">⚙️ Pengaturan</a>
+</nav><button id="logoutBtn" class="logout">Keluar</button></aside>
+
+<main class="admin-main">
+<header class="topbar"><div><span class="eyebrow">ADMIN PANEL</span><h1>Dashboard Pengelolaan Sekolah</h1></div><a href="../" class="view-site">Lihat Website ↗</a></header>
+
+<section id="dashboard" class="panel"><div class="kpis"><div><span>Peserta Didik</span><strong id="kpiStudents">—</strong><small>Data profil aktif</small></div><div><span>Rombel</span><strong id="kpiRombel">0</strong><small>Dikelola admin</small></div><div><span>Ekstrakurikuler</span><strong id="kpiEskul">0</strong><small>Dikelola admin</small></div><div><span>Data Staging</span><strong id="kpiStaging">0</strong><small>Menunggu verifikasi</small></div></div></section>
+
+<section id="sekolah" class="panel">
+<div class="panel-head"><div><span class="eyebrow">DATA SEKOLAH</span><h2>Identitas & Profil Sekolah</h2></div><button class="primary" id="saveProfileBtn">Simpan</button></div>
+<div class="form-grid">
+<label>Nama Sekolah<input id="schoolName"></label><label>NPSN<input id="schoolNpsn"></label>
+<label>Status<input id="schoolStatus"></label><label>Jenjang<input id="schoolLevel"></label>
+<label>Akreditasi<input id="schoolAccreditation"></label><label>Kepala Sekolah<input id="schoolPrincipal"></label>
+<label>Jumlah Siswa<input id="schoolStudents" type="number"></label><label>Guru & Tendik<input id="schoolStaff" type="number"></label>
+<label>Alamat<textarea id="schoolAddress"></textarea></label><label>Kota<input id="schoolCity"></label>
+<label>Telepon<input id="schoolPhone"></label><label>Email<input id="schoolEmail"></label>
+<label>Instagram URL<input id="schoolInstagram" type="url" placeholder="https://instagram.com/..."></label><label>Facebook URL<input id="schoolFacebook" type="url" placeholder="https://facebook.com/..."></label>
+<label>YouTube URL<input id="schoolYoutube" type="url" placeholder="https://youtube.com/@..."></label><label>TikTok URL<input id="schoolTiktok" type="url" placeholder="https://tiktok.com/@..."></label>
+<label>WhatsApp URL<input id="schoolWhatsapp" type="url" placeholder="https://wa.me/62..."></label>
+<label>Google Maps URL<input id="schoolMaps"></label><label>Judul Profil<input id="schoolProfileTitle"></label>
+<label>Deskripsi Sekolah<textarea id="schoolDescription"></textarea></label><label>Visi<textarea id="schoolVision"></textarea></label>
+<label>Misi — satu baris per poin<textarea id="schoolMission"></textarea></label><label>Subjudul Hero<textarea id="schoolHeroSubtitle"></textarea></label>
+<label>Judul SPMB<input id="schoolSpmbTitle"></label><label>URL SPMB<input id="schoolSpmbUrl"></label>
+<label>Deskripsi SPMB<textarea id="schoolSpmbDescription"></textarea></label>
+<div class="logo-manager full"><div><b>Logo Sekolah</b><p class="hint">Logo dipakai pada header, hero, profil, dan kontak website publik.</p><img id="schoolLogoPreview" src="../assets/logo-sekolah.jpeg" alt="Logo sekolah"></div><div><label>Upload Logo Baru<input id="schoolLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label><button type="button" class="secondary" id="uploadLogoBtn">Upload & Gunakan Logo</button><small>Disimpan ke Supabase Storage bucket school-media.</small></div></div><div class="logo-manager full"><div><b>Foto Hero / Gedung Sekolah</b><p class="hint">Foto ini menjadi gambar besar di halaman beranda seperti desain Professional V2.</p><img id="schoolHeroPreview" src="https://cdn-sekolah.annibuku.com/20607216/1.jpg" alt="Foto SDN Larangan 11"></div><div><label>Upload Foto Hero Baru<input id="schoolHeroFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="secondary" id="uploadHeroBtn">Upload & Gunakan Foto Hero</button><small>Admin dapat mengganti foto kapan saja tanpa mengubah kode.</small></div></div>
+</div><div id="profileMsg" class="msg"></div></section>
+
+<section id="rombel" class="panel"><div class="panel-head"><div><span class="eyebrow">ROMBEL</span><h2>Rombongan Belajar</h2></div><button class="primary" data-add="rombel">+ Tambah Rombel</button></div><p class="hint">Simpan tahun ajaran, semester, jumlah siswa, komposisi L/P, wali kelas, ruang dan sumber data.</p><div id="rombelEditor"></div></section>
+
+<section id="eskul" class="panel"><div class="panel-head"><div><span class="eyebrow">EKSTRAKURIKULER</span><h2>Daftar & Jadwal Eskul</h2></div><button class="primary" data-add="eskul">+ Tambah Eskul</button></div><div id="eskulEditor"></div></section>
+
+<section id="kegiatan-eskul" class="panel"><div class="panel-head"><div><span class="eyebrow">KEGIATAN ESKUL</span><h2>Update Kegiatan Ekstrakurikuler</h2></div><button class="primary" data-add="activity">+ Tambah Kegiatan</button></div><div id="activityEditor"></div></section>
+
+<section id="program" class="panel"><div class="panel-head"><div><span class="eyebrow">PROGRAM</span><h2>Program Sekolah</h2></div><button class="primary" data-add="program">+ Tambah Program</button></div><div id="programEditor"></div></section>
+<section id="berita" class="panel"><div class="panel-head"><div><span class="eyebrow">KONTEN</span><h2>Berita</h2></div><button class="primary" data-add="news">+ Tambah Berita</button></div><div id="newsEditor"></div></section>
+<section id="pengumuman" class="panel"><div class="panel-head"><div><span class="eyebrow">KONTEN</span><h2>Pengumuman</h2></div><button class="primary" data-add="announcement">+ Tambah Pengumuman</button></div><div id="announcementEditor"></div></section>
+<section id="prestasi" class="panel"><div class="panel-head"><div><span class="eyebrow">KESISWAAN</span><h2>Prestasi</h2></div><button class="primary" data-add="achievement">+ Tambah Prestasi</button></div><div id="achievementEditor"></div></section>
+<section id="galeri" class="panel"><div class="panel-head"><div><span class="eyebrow">MEDIA</span><h2>Galeri</h2></div><button class="primary" data-add="gallery">+ Tambah Foto</button></div><div id="galleryEditor"></div></section>
+<section id="dokumen" class="panel"><div class="panel-head"><div><span class="eyebrow">DOKUMEN</span><h2>Dokumen Publik</h2></div><button class="primary" data-add="document">+ Tambah Dokumen</button></div><div id="documentEditor"></div></section>
+<section id="jadwal" class="panel"><div class="panel-head"><div><span class="eyebrow">JADWAL</span><h2>Jadwal Sekolah</h2></div><button class="primary" data-add="schedule">+ Tambah Jadwal</button></div><div id="scheduleEditor"></div></section>
+
+<section id="sync" class="panel">
+<div class="panel-head"><div><span class="eyebrow">DATA PIPELINE</span><h2>Sinkronisasi & Staging</h2></div></div>
+<div class="sync-grid">
+<div class="sync-card sync-wide"><h3>🔄 Smart Sync Data Internet</h3><p>Periksa seluruh sumber yang telah didaftarkan melalui Supabase Edge Function <code>school-sync</code>. Hasil hanya masuk staging dan tidak pernah menimpa data final otomatis.</p><button class="primary" id="smartSyncBtn">Periksa Pembaruan Data Internet</button><div id="syncResult"></div></div>
+<div class="sync-card"><h3>🌐 Daftarkan Sumber</h3><input id="sourceName" placeholder="Nama sumber, mis. Kemendikdasmen"><input id="sourceUrl" placeholder="https://alamat-sumber..."><select id="sourceType"><option value="json">JSON/API</option><option value="html">HTML</option></select><input id="sourceFields" placeholder="Field: students,staff,principal"><button class="secondary" id="addSourceBtn">Simpan Sumber</button><div id="sourceList"></div></div>
+<div class="sync-card"><h3>🛡️ Verifikasi Admin</h3><p>Bandingkan nilai saat ini dan kandidat internet. Klik gunakan hanya jika data benar.</p><div id="stagingList"></div></div>
+<div class="sync-card"><h3>✏️ Aturan Sumber</h3><ul><li>Hanya sumber terdaftar dan aktif yang diperiksa.</li><li>Field yang boleh diambil dibatasi per sumber.</li><li>Data manual admin tetap sumber utama.</li><li>Accept menerapkan satu field yang dipilih; reject tidak mengubah profil.</li></ul></div>
+</div></section>
+
+<section id="settings" class="panel"><div class="panel-head"><div><span class="eyebrow">KONFIGURASI</span><h2>Pengaturan Produksi</h2></div></div><p>Frontend hanya memakai Project URL + anon/publishable key. Jangan pernah menyimpan <code>service_role</code> key di GitHub.</p></section>
+</main></div>
+
+<div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-x">×</button><h2 id="modalTitle"></h2><form id="modalForm" class="modal-form"></form></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/admin.js"></script>
+</body></html>
