@@ -33,6 +33,7 @@ const DEFAULT_MENU_VISIBILITY = {
   complaints: true,
   contact: true,
   more: true,
+  rombel: true,
   spmb: true
 };
 
@@ -109,6 +110,9 @@ const PUBLIC_SECTIONS = {
   more: {
     navHref: "#lainnya",
     selectors: ["#lainnya"]
+  },
+  rombel: {
+    selectors: ["#rombelSection"]
   },
   spmb: {
     navHref: null,

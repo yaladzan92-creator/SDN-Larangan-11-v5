@@ -7,7 +7,7 @@ create table if not exists public.school_profile (
  accreditation text, principal text, students integer, staff integer, address text, city text, phone text, email text,
  maps_url text, profile_title text, description text, vision text, mission jsonb not null default '[]'::jsonb,
  hero_subtitle text, spmb_title text, spmb_description text, spmb_url text,
- menu_visibility jsonb not null default '{"profile":true,"staff":true,"programs":true,"news":true,"achievements":true,"gallery":true,"complaints":true,"contact":true,"more":true,"spmb":true}'::jsonb,
+ menu_visibility jsonb not null default '{"profile":true,"staff":true,"programs":true,"news":true,"achievements":true,"gallery":true,"complaints":true,"contact":true,"more":true,"rombel":true,"spmb":true}'::jsonb,
  updated_at timestamptz not null default now()
 );
 

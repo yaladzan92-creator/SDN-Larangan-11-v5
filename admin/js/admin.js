@@ -208,8 +208,8 @@ function validateNpsn(npsn) {
 
 // --- DIRTY STATE TRACKING FOR MENU VISIBILITY ---
 let initialMenuVisibilitySnapshot = "";
-const MENU_VIS_KEYS = ["profile", "staff", "programs", "news", "achievements", "gallery", "complaints", "contact", "more", "spmb"];
-const DEFAULT_MENU_VISIBILITY = { profile: true, staff: true, programs: true, news: true, achievements: true, gallery: true, complaints: true, contact: true, more: true, spmb: true };
+const MENU_VIS_KEYS = ["profile", "staff", "programs", "news", "achievements", "gallery", "complaints", "contact", "more", "rombel", "spmb"];
+const DEFAULT_MENU_VISIBILITY = { profile: true, staff: true, programs: true, news: true, achievements: true, gallery: true, complaints: true, contact: true, more: true, rombel: true, spmb: true };
 
 const MENU_VIS_ITEMS = [
   { key: "profile", label: "Profil Sekolah", desc: "Mengatur halaman Profil Sekolah, Visi-Misi, dan tombol Kenali Sekolah." },
@@ -221,6 +221,7 @@ const MENU_VIS_ITEMS = [
   { key: "complaints", label: "Pengaduan", desc: "Mengatur formulir pengaduan masyarakat dan wali murid." },
   { key: "contact", label: "Kontak", desc: "Mengatur informasi kontak, jam operasional, dan peta lokasi." },
   { key: "more", label: "Informasi Lainnya", desc: "Mengatur rombel, eskul, jadwal sekolah, dan dokumen publik." },
+  { key: "rombel", label: "Rombongan Belajar", desc: "Mengatur tampilan data rombongan belajar pada bagian Informasi Lainnya." },
   { key: "spmb", label: "Informasi SPMB", desc: "Mengatur bagian promosi Penerimaan Murid Baru." }
 ];
 
