@@ -194,6 +194,102 @@ function validateNpsn(npsn) {
   return val;
 }
 
+// --- DIRTY STATE TRACKING FOR MENU VISIBILITY ---
+let initialMenuVisibilitySnapshot = "";
+const MENU_VIS_KEYS = ["profile", "staff", "programs", "news", "achievements", "gallery", "complaints", "contact", "more", "spmb"];
+const DEFAULT_MENU_VISIBILITY = { profile: true, staff: true, programs: true, news: true, achievements: true, gallery: true, complaints: true, contact: true, more: true, spmb: true };
+
+const MENU_VIS_ITEMS = [
+  { key: "profile", label: "Profil Sekolah", desc: "Mengatur halaman Profil Sekolah, Visi-Misi, dan tombol Kenali Sekolah." },
+  { key: "staff", label: "Pendidik & Tenaga Kependidikan", desc: "Mengatur bagian Pendidik, Guru, dan Pengawas Sekolah." },
+  { key: "programs", label: "Program Sekolah", desc: "Mengatur bagian daftar Program Sekolah unggulan." },
+  { key: "news", label: "Berita", desc: "Mengatur bagian Berita, pengumuman, dan artikel terbaru." },
+  { key: "achievements", label: "Prestasi", desc: "Mengatur bagian daftar Prestasi dan penghargaan sekolah." },
+  { key: "gallery", label: "Galeri", desc: "Mengatur dokumentasi foto kegiatan sekolah." },
+  { key: "complaints", label: "Pengaduan", desc: "Mengatur formulir pengaduan masyarakat dan wali murid." },
+  { key: "contact", label: "Kontak", desc: "Mengatur informasi kontak, jam operasional, dan peta lokasi." },
+  { key: "more", label: "Informasi Lainnya", desc: "Mengatur rombel, eskul, jadwal sekolah, dan dokumen publik." },
+  { key: "spmb", label: "Informasi SPMB", desc: "Mengatur bagian promosi Penerimaan Murid Baru." }
+];
+
+function getMenuVisibilityFormData() {
+  const data = {};
+  MENU_VIS_KEYS.forEach(key => {
+    const el = $(`vis_${key}`);
+    data[key] = el ? el.checked : true;
+  });
+  return data;
+}
+
+function checkMenuVisibilityDirty() {
+  const currentSnapshot = JSON.stringify(getMenuVisibilityFormData());
+  const isDirty = currentSnapshot !== initialMenuVisibilitySnapshot;
+  const btn = $("saveMenuVisibilityBtn");
+  if (!btn) return;
+  if (btn.classList.contains("btn-loading")) return;
+
+  if (isDirty) {
+    setButtonState(btn, "dirty", "Simpan Pengaturan Tampilan");
+  } else {
+    setButtonState(btn, "clean", "Tidak Ada Perubahan");
+  }
+}
+
+function renderMenuVisibility() {
+  const grid = $("visibilityGrid");
+  if (!grid) return;
+
+  const rawVisibility = (profile && typeof profile.menu_visibility === "object" && profile.menu_visibility !== null)
+    ? profile.menu_visibility
+    : {};
+  const visibility = {
+    ...DEFAULT_MENU_VISIBILITY,
+    ...rawVisibility
+  };
+
+  grid.innerHTML = MENU_VIS_ITEMS.map(item => {
+    const isChecked = visibility[item.key] !== false;
+    return `
+      <div class="visibility-item ${isChecked ? "" : "is-off"}" id="vis_container_${item.key}">
+        <div class="visibility-info">
+          <div class="visibility-info-head">
+            <span class="visibility-title">${esc(item.label)}</span>
+            <span class="visibility-badge ${isChecked ? "active" : "hidden-state"}" id="vis_badge_${item.key}">
+              ${isChecked ? "Aktif" : "Disembunyikan"}
+            </span>
+          </div>
+          <p class="visibility-desc">${esc(item.desc)}</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="vis_${item.key}" ${isChecked ? "checked" : ""} onchange="onMenuVisibilityToggle('${item.key}')">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    `;
+  }).join("");
+
+  initialMenuVisibilitySnapshot = JSON.stringify(getMenuVisibilityFormData());
+  checkMenuVisibilityDirty();
+}
+
+window.onMenuVisibilityToggle = function(key) {
+  const input = $(`vis_${key}`);
+  const container = $(`vis_container_${key}`);
+  const badge = $(`vis_badge_${key}`);
+  if (input && container && badge) {
+    if (input.checked) {
+      container.classList.remove("is-off");
+      badge.textContent = "Aktif";
+      badge.className = "visibility-badge active";
+    } else {
+      container.classList.add("is-off");
+      badge.textContent = "Disembunyikan";
+      badge.className = "visibility-badge hidden-state";
+    }
+  }
+  checkMenuVisibilityDirty();
+};
+
 // --- DIRTY STATE TRACKING FOR DATA SEKOLAH ---
 let initialProfileSnapshot = "";
 
@@ -725,6 +821,9 @@ function fillProfile() {
   initialProfileSnapshot = JSON.stringify(getProfileFormData());
   initProfileDirtyTracking();
   checkProfileDirty();
+
+  // Render menu & page visibility settings grid
+  renderMenuVisibility();
 }
 
 const saveProfileBtn = $("saveProfileBtn");
@@ -849,6 +948,85 @@ if (saveProfileBtn) {
       setProfileInlineStatus(userFriendlyMsg, "error");
       notify(userFriendlyMsg, "error", "Gagal Menyimpan");
       setButtonState(saveProfileBtn, "error");
+    }
+  };
+}
+
+const saveMenuVisibilityBtn = $("saveMenuVisibilityBtn");
+if (saveMenuVisibilityBtn) {
+  saveMenuVisibilityBtn.onclick = async () => {
+    let client;
+    try {
+      client = getClient();
+    } catch (err) {
+      notify(err.message, "error", "Koneksi Supabase");
+      return;
+    }
+
+    const payloadVisibility = getMenuVisibilityFormData();
+
+    setButtonState(saveMenuVisibilityBtn, "loading");
+    const statusEl = $("saveMenuVisibilityInlineStatus");
+    if (statusEl) {
+      statusEl.textContent = "Menyimpan pengaturan...";
+      statusEl.className = "save-inline-status show status-loading";
+    }
+
+    try {
+      // Update only the menu_visibility field on school_profile where id = 1
+      const { error } = await client
+        .from("school_profile")
+        .update({
+          menu_visibility: payloadVisibility,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", 1);
+
+      if (error) throw error;
+
+      // Read-back verification
+      const { data: verifiedData, error: readErr } = await client
+        .from("school_profile")
+        .select("menu_visibility")
+        .eq("id", 1)
+        .single();
+
+      if (readErr || !verifiedData) {
+        console.warn("[SDN11 Admin] Read-back verification warning for menu visibility:", readErr);
+        profile.menu_visibility = payloadVisibility;
+        if (statusEl) {
+          statusEl.textContent = "Berhasil dikirim tetapi belum dapat diverifikasi.";
+          statusEl.className = "save-inline-status show status-warning";
+        }
+        notify("Pengaturan berhasil disimpan, namun verifikasi pembacaan ulang gagal.", "warning");
+        setButtonState(saveMenuVisibilityBtn, "success");
+        setTimeout(() => checkMenuVisibilityDirty(), 2500);
+      } else {
+        profile.menu_visibility = verifiedData.menu_visibility;
+        initialMenuVisibilitySnapshot = JSON.stringify(profile.menu_visibility);
+        if (statusEl) {
+          statusEl.textContent = "Pengaturan berhasil disimpan.";
+          statusEl.className = "save-inline-status show status-success";
+        }
+        notify("Pengaturan tampilan berhasil disimpan.", "success");
+        setButtonState(saveMenuVisibilityBtn, "success");
+        setTimeout(() => {
+          setButtonState(saveMenuVisibilityBtn, "clean");
+          if (statusEl) {
+            statusEl.textContent = "";
+            statusEl.className = "save-inline-status";
+          }
+        }, 2500);
+      }
+    } catch (err) {
+      console.error("[SDN11 Admin] Gagal simpan menu visibility:", err);
+      const userFriendlyMsg = "Gagal menyimpan pengaturan tampilan: " + (err.message || "Kesalahan tidak dikenal.");
+      if (statusEl) {
+        statusEl.textContent = userFriendlyMsg;
+        statusEl.className = "save-inline-status show status-error";
+      }
+      notify(userFriendlyMsg, "error", "Gagal Menyimpan");
+      setButtonState(saveMenuVisibilityBtn, "error");
     }
   };
 }

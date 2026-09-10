@@ -891,3 +891,10 @@
   font-size: 12px;
 }
 
+/* =========================================
+   Public Menu & Section Visibility Control
+   ========================================= */
+.is-hidden, [hidden] {
+  display: none !important;
+}
+

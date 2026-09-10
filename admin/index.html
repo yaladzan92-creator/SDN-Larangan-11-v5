@@ -84,7 +84,34 @@
 <div class="sync-card"><h3>✏️ Aturan Sumber</h3><ul><li>Hanya sumber terdaftar dan aktif yang diperiksa.</li><li>Field yang boleh diambil dibatasi per sumber.</li><li>Data manual admin tetap sumber utama.</li><li>Accept menerapkan satu field yang dipilih; reject tidak mengubah profil.</li></ul></div>
 </div></section>
 
-<section id="settings" class="panel"><div class="panel-head"><div><span class="eyebrow">KONFIGURASI</span><h2>Pengaturan Produksi</h2></div></div><p>Frontend hanya memakai Project URL + anon/publishable key. Jangan pernah menyimpan <code>service_role</code> key di GitHub.</p></section>
+<section id="settings" class="panel">
+  <div class="panel-head">
+    <div><span class="eyebrow">PENGATURAN</span><h2>Pengaturan Tampilan Website</h2></div>
+    <div class="save-profile-action">
+      <span id="saveMenuVisibilityInlineStatus" class="save-inline-status"></span>
+      <button class="primary" id="saveMenuVisibilityBtn">Simpan Pengaturan Tampilan</button>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <div class="settings-card-header">
+      <div>
+        <h3>Visibilitas Menu & Halaman</h3>
+        <p class="hint">Atur bagian website yang ingin ditampilkan kepada pengunjung. Menyembunyikan menu tidak akan menghapus data.</p>
+      </div>
+    </div>
+    <div class="visibility-grid" id="visibilityGrid"></div>
+  </div>
+
+  <div class="settings-card mt-20">
+    <div class="settings-card-header">
+      <div>
+        <h3>Konfigurasi Produksi & Keamanan</h3>
+        <p class="hint">Frontend hanya memakai Project URL + anon/publishable key. Jangan pernah menyimpan <code>service_role</code> key di GitHub atau repositori publik.</p>
+      </div>
+    </div>
+  </div>
+</section>
 </main></div>
 
 <div id="modal" class="modal hidden"><div class="modal-card"><button id="modalClose" class="modal-x">×</button><h2 id="modalTitle"></h2><div id="modalMsg" class="modal-msg msg"></div><form id="modalForm" class="modal-form"></form></div></div>

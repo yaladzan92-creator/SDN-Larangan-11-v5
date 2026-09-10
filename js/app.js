@@ -36,8 +36,90 @@ const fallbackProfile = {
   hero_image_url: "https://tangerangekspres.disway.id/upload/41e8591802ca9390ba3fdc27369b1e04.jpg",
   spmb_title: "Informasi SPMB",
   spmb_description: "Informasi penerimaan murid baru dapat diperbarui melalui Admin.",
-  spmb_url: "https://spmb.tangerangkota.go.id/"
+  spmb_url: "https://spmb.tangerangkota.go.id/",
+  menu_visibility: {
+    profile: true,
+    staff: true,
+    programs: true,
+    news: true,
+    achievements: true,
+    gallery: true,
+    complaints: true,
+    contact: true,
+    more: true,
+    spmb: true
+  }
 };
+
+const DEFAULT_MENU_VISIBILITY = {
+  profile: true,
+  staff: true,
+  programs: true,
+  news: true,
+  achievements: true,
+  gallery: true,
+  complaints: true,
+  contact: true,
+  more: true,
+  spmb: true
+};
+
+function setElementVisibility(target, visible) {
+  const elements = typeof target === "string" ? document.querySelectorAll(target) : [target];
+  elements.forEach(el => {
+    if (!el) return;
+    if (visible) {
+      el.hidden = false;
+      el.classList.remove("is-hidden");
+    } else {
+      el.hidden = true;
+      el.classList.add("is-hidden");
+    }
+  });
+}
+
+function applyMenuVisibility(profile) {
+  const rawVisibility = (profile && typeof profile.menu_visibility === "object" && profile.menu_visibility !== null)
+    ? profile.menu_visibility
+    : {};
+  const visibility = {
+    ...DEFAULT_MENU_VISIBILITY,
+    ...rawVisibility
+  };
+
+  // 1. Navigation links
+  const navMap = {
+    profile: '#navMenu a[href="#profil"]',
+    staff: '#navMenu a[href="#pendidik"]',
+    programs: '#navMenu a[href="#program"]',
+    news: '#navMenu a[href="#berita"]',
+    achievements: '#navMenu a[href="#prestasi"]',
+    gallery: '#navMenu a[href="#galeri"]',
+    complaints: '#navMenu a[href="#pengaduan"]',
+    contact: '#navMenu a[href="#kontak"]',
+    more: '#navMenu a[href="#lainnya"]'
+  };
+
+  Object.entries(navMap).forEach(([key, selector]) => {
+    setElementVisibility(selector, visibility[key] !== false);
+  });
+
+  // 2. Public Sections & Special Components
+  const isProfileVisible = visibility.profile !== false;
+  setElementVisibility("#profil", isProfileVisible);
+  setElementVisibility(".vision", isProfileVisible);
+  setElementVisibility('.hero .actions a[href="#profil"]', isProfileVisible);
+
+  setElementVisibility("#pendidik", visibility.staff !== false);
+  setElementVisibility("#program", visibility.programs !== false);
+  setElementVisibility("#berita", visibility.news !== false);
+  setElementVisibility("#prestasi", visibility.achievements !== false);
+  setElementVisibility("#galeri", visibility.gallery !== false);
+  setElementVisibility("#pengaduan", visibility.complaints !== false);
+  setElementVisibility("#kontak", visibility.contact !== false);
+  setElementVisibility("#lainnya", visibility.more !== false);
+  setElementVisibility(".cta-spmb", visibility.spmb !== false);
+}
 
 const fallbackStaff = [];
 
@@ -194,6 +276,9 @@ function renderProfile(p) {
       ? socials.map(([sName, url, icon]) => `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sName)}"><span>${icon}</span>${esc(sName)}</a>`).join("")
       : '<span class="muted">Media sosial belum ditambahkan.</span>';
   }
+
+  // Apply visibility settings to navigation and sections
+  applyMenuVisibility(p);
 }
 
 /* ================================================================
