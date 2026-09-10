@@ -485,7 +485,28 @@ function renderPrograms(items) {
     { title: "Lingkungan & Kebersamaan", description: "Membangun kepedulian terhadap kebersihan dan lingkungan sekolah." }
   ];
   if ($("programList")) {
-    $("programList").innerHTML = x.map((v, i) => `<article class="feature"><div class="num">${String(i + 1).padStart(2, "0")}</div><h3>${esc(v.title || v.name)}</h3><p>${esc(v.description || "")}</p></article>`).join("");
+    $("programList").innerHTML = x.map((v, i) => {
+      const numStr = String(i + 1).padStart(2, "0");
+      if (v.image_url) {
+        return `
+          <article class="content-card program-card">
+            ${img(v.image_url, v.title || v.name)}
+            <div class="body">
+              <span class="program-num-badge">Program ${numStr}</span>
+              <h3>${esc(v.title || v.name)}</h3>
+              <p>${esc(v.description || "")}</p>
+            </div>
+          </article>
+        `;
+      }
+      return `
+        <article class="feature">
+          <div class="num">${numStr}</div>
+          <h3>${esc(v.title || v.name)}</h3>
+          <p>${esc(v.description || "")}</p>
+        </article>
+      `;
+    }).join("");
   }
 }
 
@@ -500,7 +521,30 @@ function renderNews(items) {
 function renderAchievements(items) {
   if ($("achievementList")) {
     $("achievementList").innerHTML = items.length
-      ? items.map(x => `<article class="achievement-card"><strong>${esc(x.title)}</strong><p>${esc(x.level || "")}</p><small>${esc(x.year || "")}</small></article>`).join("")
+      ? items.map(x => {
+          const metaParts = [x.category, x.level, x.year].filter(Boolean).map(esc);
+          const metaStr = metaParts.join(" · ");
+          if (x.image_url) {
+            return `
+              <article class="content-card achievement-card-media">
+                ${img(x.image_url, x.title)}
+                <div class="body">
+                  ${metaStr ? `<small class="achievement-meta">${metaStr}</small>` : ""}
+                  <h3>${esc(x.title)}</h3>
+                  ${x.description ? `<p class="achievement-desc">${esc(x.description)}</p>` : ""}
+                </div>
+              </article>
+            `;
+          }
+          return `
+            <article class="achievement-card">
+              <strong>${esc(x.title)}</strong>
+              ${(x.category || x.level) ? `<p>${esc([x.category, x.level].filter(Boolean).join(" · "))}</p>` : ""}
+              ${x.description ? `<p class="achievement-desc">${esc(x.description)}</p>` : ""}
+              ${x.year ? `<small>${esc(x.year)}</small>` : ""}
+            </article>
+          `;
+        }).join("")
       : '<div class="empty">Belum ada prestasi.</div>';
   }
 }

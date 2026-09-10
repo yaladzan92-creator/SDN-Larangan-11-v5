@@ -28,7 +28,7 @@ create table if not exists public.extracurricular_activities (
 );
 
 create table if not exists public.programs (
- id uuid primary key default gen_random_uuid(), title text not null, description text, sort_order integer not null default 0,
+ id uuid primary key default gen_random_uuid(), title text not null, description text, image_url text, sort_order integer not null default 0,
  published boolean not null default true, created_at timestamptz not null default now()
 );
 
@@ -43,7 +43,7 @@ create table if not exists public.announcements (
 );
 
 create table if not exists public.achievements (
- id uuid primary key default gen_random_uuid(), title text not null, category text, level text, year integer, description text,
+ id uuid primary key default gen_random_uuid(), title text not null, category text, level text, year integer, description text, image_url text,
  published boolean not null default true, created_at timestamptz not null default now()
 );
 

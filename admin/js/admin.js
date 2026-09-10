@@ -313,6 +313,8 @@ const defs = {
     fields: [
       ["title", "Nama Program", "text"],
       ["description", "Deskripsi", "textarea"],
+      ["image_url", "URL Foto", "text"],
+      ["image_file", "Upload Foto", "file"],
       ["sort_order", "Urutan", "number"],
       ["published", "Tampilkan", "checkbox"]
     ]
@@ -339,6 +341,8 @@ const defs = {
       ["level", "Tingkat", "text"],
       ["year", "Tahun", "number"],
       ["description", "Deskripsi", "textarea"],
+      ["image_url", "URL Foto", "text"],
+      ["image_file", "Upload Foto", "file"],
       ["published", "Publish", "checkbox"]
     ]
   },
@@ -492,8 +496,8 @@ async function upload(file, folder, isDocument = false) {
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
   const MAX_DOC_SIZE = 10 * 1024 * 1024;  // 10 MB
 
-  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
-  const ALLOWED_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".svg"];
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  const ALLOWED_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"];
 
   const ALLOWED_DOC_TYPES = [
     "application/pdf",
@@ -506,14 +510,14 @@ async function upload(file, folder, isDocument = false) {
 
   const REJECTED_EXTS = [
     ".exe", ".js", ".mjs", ".html", ".htm", ".zip", ".rar", ".7z",
-    ".bat", ".cmd", ".sh", ".php", ".py", ".vbs", ".scr", ".com", ".dll", ".apk"
+    ".bat", ".cmd", ".sh", ".php", ".py", ".vbs", ".scr", ".com", ".dll", ".apk", ".svg"
   ];
 
   const fileName = file.name || "file";
   const fileExt = fileName.includes(".") ? "." + fileName.split(".").pop().toLowerCase() : "";
 
   // Reject executable or dangerous file extensions explicitly
-  if (REJECTED_EXTS.includes(fileExt)) {
+  if (REJECTED_EXTS.includes(fileExt) && !isDocument) {
     throw new Error(`File dengan ekstensi '${fileExt}' dilarang demi keamanan sistem.`);
   }
 
@@ -536,20 +540,17 @@ async function upload(file, folder, isDocument = false) {
     }
     if (file.type) {
       if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
-        throw new Error(`Format file gambar tidak didukung (MIME: ${file.type}). Gunakan format JPG, PNG, WebP, atau SVG.`);
+        throw new Error(`Format file gambar tidak didukung (MIME: ${file.type}). Gunakan format JPG, PNG, atau WebP.`);
       }
     } else {
       if (!ALLOWED_IMAGE_EXTS.includes(fileExt)) {
-        throw new Error("Format file gambar tidak didukung. Gunakan file dengan ekstensi .jpg, .png, .webp, atau .svg.");
+        throw new Error("Format file gambar tidak didukung. Gunakan file dengan ekstensi .jpg, .jpeg, .png, atau .webp.");
       }
     }
   }
 
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
-  const randomId = (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2);
-  const path = `${folder}/${Date.now()}-${randomId}-${safeName}`;
+  const path = `${folder}/${Date.now()}-${safeName}`;
 
   const { error } = await client.storage
     .from(bucket)
@@ -1007,6 +1008,9 @@ function displayValue(f, v) {
     const x = cache.eskul.find(e => e.id === v);
     return x?.name || "-";
   }
+  if ((f[0] === "image_url" || f[0] === "photo_url" || f[0] === "file_url") && v) {
+    return String(v).length > 30 ? String(v).slice(0, 27) + "…" : String(v);
+  }
   return v ?? "-";
 }
 
@@ -1054,13 +1058,23 @@ function fieldHTML(f, v, type, item = {}) {
     `;
   }
   if (kind === "file") {
-    const isStaff = type === "staff";
-    const existingPhoto = (isStaff && item.photo_url) ? item.photo_url : null;
+    const isDoc = name === "file_upload";
+    const existingPhoto = item.photo_url || item.image_url || null;
+    const folderMap = {
+      program: "programs",
+      achievement: "achievements",
+      news: "news",
+      gallery: "gallery",
+      activity: "activities",
+      eskul: "extracurriculars",
+      staff: "staff"
+    };
+    const folderName = folderMap[type] || "media";
     return `
       <label class="full">${esc(label)}
-        <input type="file" name="${name}" accept="${isStaff ? "image/jpeg,image/png,image/webp" : "*/*"}">
-        <span class="file-note">${isStaff ? "Format JPG/PNG/WebP maks 5MB. Disimpan ke folder staff/ bucket school-media." : "File akan disimpan ke Supabase Storage."}</span>
-        ${existingPhoto ? `<div class="photo-preview-box"><img src="${esc(existingPhoto)}" alt="Preview"><small>Foto tersimpan saat ini</small></div>` : ""}
+        <input type="file" name="${name}" accept="${isDoc ? ".pdf,.doc,.docx,.xls,.xlsx" : "image/jpeg,image/png,image/webp"}">
+        <span class="file-note">${isDoc ? "Format dokumen (PDF, DOC, DOCX, XLS, XLSX) maks 10MB." : `Format JPG, PNG, atau WebP maks 5MB. Disimpan ke folder ${folderName}/ bucket school-media.`}</span>
+        ${(!isDoc && existingPhoto) ? `<div class="photo-preview-box"><img src="${esc(existingPhoto)}" alt="Preview" loading="lazy"><small>Foto tersimpan saat ini: ${esc(existingPhoto)}</small></div>` : ""}
       </label>
     `;
   }
@@ -1168,17 +1182,34 @@ async function saveEditor(e, type, id) {
       }
     }
 
+    const folderMap = {
+      program: "programs",
+      achievement: "achievements",
+      news: "news",
+      gallery: "gallery",
+      activity: "activities",
+      eskul: "extracurriculars",
+      staff: "staff"
+    };
+    const folder = folderMap[type] || type || "media";
+
     const imageFile = fd.get("image_file");
     if (imageFile && imageFile.size) {
-      payload.image_url = await upload(imageFile, type, false);
+      if (submitBtn) submitBtn.textContent = "Mengunggah foto...";
+      payload.image_url = await upload(imageFile, folder, false);
+      if (submitBtn) submitBtn.textContent = "Menyimpan data...";
     }
     const docFile = fd.get("file_upload");
     if (docFile && docFile.size) {
+      if (submitBtn) submitBtn.textContent = "Mengunggah dokumen...";
       payload.file_url = await upload(docFile, "documents", true);
+      if (submitBtn) submitBtn.textContent = "Menyimpan data...";
     }
     const photoFile = fd.get("photo_file");
     if (photoFile && photoFile.size) {
+      if (submitBtn) submitBtn.textContent = "Mengunggah foto...";
       payload.photo_url = await upload(photoFile, "staff", false);
+      if (submitBtn) submitBtn.textContent = "Menyimpan data...";
     }
 
     const req = id
