@@ -7,7 +7,10 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
   "'": "&#039;"
 }[c]));
 const dateID = d => d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "";
-const imageFallback = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560"><rect width="100%" height="100%" fill="#e9eef4"/><text x="50%" y="48%" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="28">SDN Larangan 11</text><text x="50%" y="56%" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="18">Gambar belum tersedia</text></svg>`);
+
+// Generate fallback SVG dynamically based on config defaults
+const getSchoolShortName = () => window.SDN_SITE_DEFAULTS?.schoolShortName || "Sekolah";
+const imageFallback = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560"><rect width="100%" height="100%" fill="#e9eef4"/><text x="50%" y="48%" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="28">${getSchoolShortName()}</text><text x="50%" y="56%" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="18">Gambar belum tersedia</text></svg>`);
 const mediaImg = (url, alt, cls) => `<img class="${cls}" src="${esc(url || imageFallback)}" alt="${esc(alt || "")}" loading="lazy" onerror="this.onerror=null;this.src='${imageFallback}'">`;
 
 const defaultAvatar = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
@@ -19,21 +22,21 @@ const defaultAvatar = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
 `);
 
 const fallbackProfile = {
-  name: "SDN Larangan 11",
-  npsn: "20607216",
+  name: window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11",
+  npsn: window.SDN_SITE_DEFAULTS?.npsn || "20607216",
   status: "Negeri",
-  level: "Sekolah Dasar",
+  level: window.SDN_SITE_DEFAULTS?.level || "Sekolah Dasar",
   accreditation: "A",
   students: null,
   staff: null,
   principal: "Fetty Meriyanti",
-  address: "Jl. H. Majuk No. 180, Larangan Utara, Kecamatan Larangan, Kota Tangerang, Banten 15154",
-  city: "Kota Tangerang",
-  description: "SDN Larangan 11 merupakan sekolah dasar negeri di Larangan Utara, Kota Tangerang.",
+  address: window.SDN_SITE_DEFAULTS?.address || "Jl. H. Majuk No. 180, Larangan Utara, Kecamatan Larangan, Kota Tangerang, Banten 15154",
+  city: window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang",
+  description: `${window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11"} merupakan sekolah dasar negeri yang berdedikasi tinggi di ${window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang"}.`,
   vision: "Membentuk generasi yang religius, disiplin, jujur, kreatif dan berkarakter yang peduli terhadap lingkungan.",
   mission: ["Religius", "Disiplin", "Jujur", "Kreatif", "Berkarakter", "Peduli Lingkungan"],
-  logo_url: "assets/logo-sekolah.jpeg",
-  hero_image_url: "https://tangerangekspres.disway.id/upload/41e8591802ca9390ba3fdc27369b1e04.jpg",
+  logo_url: window.SDN_SITE_DEFAULTS?.logoPath || "assets/logo-sekolah.jpeg",
+  hero_image_url: "assets/school-hero-placeholder.svg",
   spmb_title: "Informasi SPMB",
   spmb_description: "Informasi penerimaan murid baru dapat diperbarui melalui Admin.",
   spmb_url: "https://spmb.tangerangkota.go.id/",
@@ -78,6 +81,50 @@ function setElementVisibility(target, visible) {
   });
 }
 
+const PUBLIC_SECTIONS = {
+  profile: {
+    navHref: "#profil",
+    selectors: ["#profil", ".vision"],
+    heroAction: true
+  },
+  staff: {
+    navHref: "#pendidik",
+    selectors: ["#pendidik"]
+  },
+  programs: {
+    navHref: "#program",
+    selectors: ["#program"]
+  },
+  news: {
+    navHref: "#berita",
+    selectors: ["#berita"]
+  },
+  achievements: {
+    navHref: "#prestasi",
+    selectors: ["#prestasi"]
+  },
+  gallery: {
+    navHref: "#galeri",
+    selectors: ["#galeri"]
+  },
+  complaints: {
+    navHref: "#pengaduan",
+    selectors: ["#pengaduan"]
+  },
+  contact: {
+    navHref: "#kontak",
+    selectors: ["#kontak"]
+  },
+  more: {
+    navHref: "#lainnya",
+    selectors: ["#lainnya"]
+  },
+  spmb: {
+    navHref: null,
+    selectors: [".cta-spmb"]
+  }
+};
+
 function applyMenuVisibility(profile) {
   const rawVisibility = (profile && typeof profile.menu_visibility === "object" && profile.menu_visibility !== null)
     ? profile.menu_visibility
@@ -87,38 +134,29 @@ function applyMenuVisibility(profile) {
     ...rawVisibility
   };
 
-  // 1. Navigation links
-  const navMap = {
-    profile: '#navMenu a[href="#profil"]',
-    staff: '#navMenu a[href="#pendidik"]',
-    programs: '#navMenu a[href="#program"]',
-    news: '#navMenu a[href="#berita"]',
-    achievements: '#navMenu a[href="#prestasi"]',
-    gallery: '#navMenu a[href="#galeri"]',
-    complaints: '#navMenu a[href="#pengaduan"]',
-    contact: '#navMenu a[href="#kontak"]',
-    more: '#navMenu a[href="#lainnya"]'
-  };
+  Object.entries(PUBLIC_SECTIONS).forEach(([key, config]) => {
+    const isVisible = visibility[key] !== false;
+    
+    // Toggle nav link if navHref is present
+    if (config.navHref) {
+      const navSelector = `#navMenu a[href="${config.navHref}"]`;
+      setElementVisibility(navSelector, isVisible);
+    }
+    
+    // Toggle other selectors
+    if (config.selectors) {
+      config.selectors.forEach(sel => {
+        setElementVisibility(sel, isVisible);
+      });
+    }
 
-  Object.entries(navMap).forEach(([key, selector]) => {
-    setElementVisibility(selector, visibility[key] !== false);
+    // Toggle hero actions if configured
+    if (config.heroAction) {
+      setElementVisibility(`.hero .actions a[href="${config.navHref}"]`, isVisible);
+    }
   });
 
-  // 2. Public Sections & Special Components
-  const isProfileVisible = visibility.profile !== false;
-  setElementVisibility("#profil", isProfileVisible);
-  setElementVisibility(".vision", isProfileVisible);
-  setElementVisibility('.hero .actions a[href="#profil"]', isProfileVisible);
-
-  setElementVisibility("#pendidik", visibility.staff !== false);
-  setElementVisibility("#program", visibility.programs !== false);
-  setElementVisibility("#berita", visibility.news !== false);
-  setElementVisibility("#prestasi", visibility.achievements !== false);
-  setElementVisibility("#galeri", visibility.gallery !== false);
-  setElementVisibility("#pengaduan", visibility.complaints !== false);
-  setElementVisibility("#kontak", visibility.contact !== false);
-  setElementVisibility("#lainnya", visibility.more !== false);
-  setElementVisibility(".cta-spmb", visibility.spmb !== false);
+  // Future option: split more into rombel, extracurriculars, activities, schedules, documents.
 }
 
 const fallbackStaff = [];
@@ -146,7 +184,7 @@ async function q(table, select = "*", filters = []) {
   }
 }
 
-const fallbackImg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><rect width="100%" height="100%" fill="#dfe7ed"/><text x="50%" y="50%" text-anchor="middle" fill="#667085" font-family="Arial" font-size="26">SDN Larangan 11</text></svg>');
+const fallbackImg = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><rect width="100%" height="100%" fill="#dfe7ed"/><text x="50%" y="50%" text-anchor="middle" fill="#667085" font-family="Arial" font-size="26">' + getSchoolShortName() + '</text></svg>');
 function img(url, title) {
   return `<img src="${esc(url || fallbackImg)}" alt="${esc(title || "")}" onerror="this.onerror=null;this.src='${fallbackImg}'">`;
 }
@@ -213,24 +251,79 @@ async function init() {
   $("menuBtn")?.addEventListener("click", () => $("navMenu").classList.toggle("open"));
 }
 
-function renderProfile(p) {
-  const name = p.name || fallbackProfile.name;
-  const logo = p.logo_url || "assets/logo-sekolah.jpeg";
+function applyPageMetadata(p) {
+  const name = p.name || window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11";
+  const city = p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang";
+  const district = p.district || window.SDN_SITE_DEFAULTS?.district || "Kecamatan Larangan";
+  const titleText = `${name} | ${city}`;
+  const descText = p.description || `Portal resmi informasi dan layanan ${name}, ${district}, ${city}.`;
 
-  if ($("brandLogo")) $("brandLogo").src = logo;
-  if ($("footerLogo")) $("footerLogo").src = logo;
-  if ($("brandName")) $("brandName").textContent = name.toUpperCase();
-  if ($("brandSubtitle")) $("brandSubtitle").textContent = `Kecamatan Larangan · ${p.city || "Kota Tangerang"}`;
-  if ($("topbarMeta")) $("topbarMeta").textContent = `NPSN ${p.npsn || "-"} · ${p.city || "Kota Tangerang"}`;
+  document.title = titleText;
+
+  // Meta description
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) {
+    metaDesc.setAttribute("content", descText);
+  }
+
+  // OG Title
+  let ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) {
+    ogTitle.setAttribute("content", titleText);
+  }
+
+  // OG Description
+  let ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) {
+    ogDesc.setAttribute("content", descText);
+  }
+}
+
+function renderProfile(p) {
+  const name = p.name || window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11";
+  const logo = p.logo_url || window.SDN_SITE_DEFAULTS?.logoPath || "assets/logo-sekolah.jpeg";
+
+  if ($("brandLogo")) {
+    $("brandLogo").src = logo;
+    $("brandLogo").alt = `Logo ${name}`;
+  }
+  if ($("footerLogo")) {
+    $("footerLogo").src = logo;
+    $("footerLogo").alt = `Logo ${name}`;
+  }
+  if ($("brandName")) $("brandName").textContent = (p.short_name || window.SDN_SITE_DEFAULTS?.schoolShortName || name).toUpperCase();
+  if ($("brandSubtitle")) $("brandSubtitle").textContent = `${window.SDN_SITE_DEFAULTS?.district || "Kecamatan Larangan"} · ${p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang"}`;
+  if ($("topbarMeta")) $("topbarMeta").textContent = `NPSN ${p.npsn || window.SDN_SITE_DEFAULTS?.npsn || "—"} · ${p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang"}`;
+  
+  const topbarSpan = document.querySelector(".topbar-inner span:first-child");
+  if (topbarSpan) {
+    topbarSpan.textContent = `Portal Informasi ${name}`;
+  }
+
   if ($("heroSchool")) $("heroSchool").textContent = name;
   if ($("heroSubtitle")) $("heroSubtitle").textContent = p.hero_subtitle || p.vision || "";
-  if ($("heroImg")) $("heroImg").src = p.hero_image_url || fallbackProfile.hero_image_url;
+  if ($("heroImg")) {
+    $("heroImg").src = p.hero_image_url || "assets/school-hero-placeholder.svg";
+    $("heroImg").alt = `Gedung ${name}`;
+  }
+  
+  const heroBadge = document.querySelector(".hero-copy .badge");
+  if (heroBadge) {
+    heroBadge.textContent = `${p.level || window.SDN_SITE_DEFAULTS?.level || "Sekolah Dasar Negeri"} · ${p.village || window.SDN_SITE_DEFAULTS?.village || "Larangan Utara"}`;
+  }
+
   if ($("statNpsn")) $("statNpsn").textContent = p.npsn || "—";
   if ($("statStatus")) $("statStatus").textContent = p.status || "—";
   if ($("statStudents")) $("statStudents").textContent = p.students ?? "—";
   if ($("statStaff")) $("statStaff").textContent = p.staff ?? "—";
-  if ($("profileTitle")) $("profileTitle").textContent = p.profile_title || "Berakar di Larangan Utara, tumbuh bersama masyarakat.";
+  
+  if ($("profileTitle")) $("profileTitle").textContent = p.profile_title || `Berakar di ${window.SDN_SITE_DEFAULTS?.village || "Larangan Utara"}, tumbuh bersama masyarakat.`;
   if ($("profileDescription")) $("profileDescription").textContent = p.description || "";
+  
+  if ($("profilePhoto")) {
+    $("profilePhoto").src = p.profile_photo_url || "assets/school-profile-placeholder.svg";
+    $("profilePhoto").alt = `Profil ${name}`;
+  }
   
   if ($("profileInfo")) {
     $("profileInfo").innerHTML = [
@@ -262,7 +355,13 @@ function renderProfile(p) {
   if ($("spmbDescription")) $("spmbDescription").textContent = p.spmb_description || "";
   if ($("spmbLink")) $("spmbLink").href = p.spmb_url || "#";
   if ($("footerSchool")) $("footerSchool").textContent = name;
-  if ($("footerCity")) $("footerCity").textContent = (p.city || "Kota Tangerang") + " · Provinsi Banten";
+  if ($("footerCity")) $("footerCity").textContent = (p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang") + ` · Provinsi ${window.SDN_SITE_DEFAULTS?.province || "Banten"}`;
+
+  const copyrightEl = document.querySelector(".copyright");
+  if (copyrightEl) {
+    const year = new Date().getFullYear();
+    copyrightEl.innerHTML = `&copy; ${year} ${name}`;
+  }
 
   if ($("socialLinks")) {
     const socials = [
@@ -276,6 +375,9 @@ function renderProfile(p) {
       ? socials.map(([sName, url, icon]) => `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sName)}"><span>${icon}</span>${esc(sName)}</a>`).join("")
       : '<span class="muted">Media sosial belum ditambahkan.</span>';
   }
+
+  // Apply metadata/SEO
+  applyPageMetadata(p);
 
   // Apply visibility settings to navigation and sections
   applyMenuVisibility(p);
@@ -564,34 +666,31 @@ function initComplaintForm() {
    ================================================================ */
 
 function renderPrograms(items) {
-  const x = items.length ? items : [
-    { title: "Literasi & Pembelajaran", description: "Mendorong kemampuan membaca, menulis, bernalar, dan belajar aktif." },
-    { title: "Karakter & Keagamaan", description: "Menumbuhkan disiplin, kejujuran, tanggung jawab, dan nilai religius." },
-    { title: "Lingkungan & Kebersamaan", description: "Membangun kepedulian terhadap kebersihan dan lingkungan sekolah." }
-  ];
   if ($("programList")) {
-    $("programList").innerHTML = x.map((v, i) => {
-      const numStr = String(i + 1).padStart(2, "0");
-      if (v.image_url) {
-        return `
-          <article class="content-card program-card">
-            ${img(v.image_url, v.title || v.name)}
-            <div class="body">
-              <span class="program-num-badge">Program ${numStr}</span>
+    $("programList").innerHTML = items.length
+      ? items.map((v, i) => {
+          const numStr = String(i + 1).padStart(2, "0");
+          if (v.image_url) {
+            return `
+              <article class="content-card program-card">
+                ${img(v.image_url, v.title || v.name)}
+                <div class="body">
+                  <span class="program-num-badge">Program ${numStr}</span>
+                  <h3>${esc(v.title || v.name)}</h3>
+                  <p>${esc(v.description || "")}</p>
+                </div>
+              </article>
+            `;
+          }
+          return `
+            <article class="feature">
+              <div class="num">${numStr}</div>
               <h3>${esc(v.title || v.name)}</h3>
               <p>${esc(v.description || "")}</p>
-            </div>
-          </article>
-        `;
-      }
-      return `
-        <article class="feature">
-          <div class="num">${numStr}</div>
-          <h3>${esc(v.title || v.name)}</h3>
-          <p>${esc(v.description || "")}</p>
-        </article>
-      `;
-    }).join("");
+            </article>
+          `;
+        }).join("")
+      : '<div class="empty text-center w-full" style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--muted);">Program sekolah belum dipublikasikan.</div>';
   }
 }
 
@@ -599,7 +698,7 @@ function renderNews(items) {
   if ($("newsList")) {
     $("newsList").innerHTML = items.length
       ? items.map(x => `<article class="content-card">${img(x.image_url, x.title)}<div class="body"><small>${dateID(x.published_at) || "INFORMASI"}</small><h3>${esc(x.title)}</h3><p>${esc(x.excerpt || "")}</p></div></article>`).join("")
-      : '<div class="empty">Belum ada berita.</div>';
+      : '<div class="empty">Belum ada berita yang dipublikasikan.</div>';
   }
 }
 
@@ -630,7 +729,7 @@ function renderAchievements(items) {
             </article>
           `;
         }).join("")
-      : '<div class="empty">Belum ada prestasi.</div>';
+      : '<div class="empty">Belum ada prestasi yang dipublikasikan.</div>';
   }
 }
 
@@ -638,7 +737,7 @@ function renderGallery(items) {
   if ($("galleryList")) {
     $("galleryList").innerHTML = items.length
       ? items.map(x => `<figure>${img(x.image_url, x.title)}<figcaption>${esc(x.title || "Kegiatan Sekolah")}</figcaption></figure>`).join("")
-      : '<div class="empty">Belum ada foto.</div>';
+      : '<div class="empty">Belum ada foto galeri.</div>';
   }
 }
 
@@ -646,7 +745,7 @@ function renderRombel(items) {
   if ($("rombelList")) {
     $("rombelList").innerHTML = items.length
       ? `<table class="data-table"><thead><tr><th>Rombel</th><th>Tingkat</th><th>Siswa</th><th>Wali Kelas</th><th>Ruang</th></tr></thead><tbody>${items.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.grade)}</td><td>${esc(x.student_count ?? "-")}</td><td>${esc(x.homeroom_teacher || "-")}</td><td>${esc(x.room || "-")}</td></tr>`).join("")}</tbody></table>`
-      : '<div class="empty">Belum ada data rombel.</div>';
+      : '<div class="empty">Data rombongan belajar belum tersedia.</div>';
   }
 }
 
@@ -654,7 +753,7 @@ function renderEskul(items) {
   const el = $("eskulList");
   if (!el) return;
   if (!items.length) {
-    el.innerHTML = '<div class="empty">Belum ada ekstrakurikuler.</div>';
+    el.innerHTML = '<div class="empty">Data ekstrakurikuler belum tersedia.</div>';
     return;
   }
   el.innerHTML = items.map(x => `<article class="content-card eskul-card">${mediaImg(x.image_url, x.name, "eskul-image")}<div class="body"><h3>${esc(x.name)}</h3><p><b>${esc(x.day || "-")}</b>${x.start_time ? ` · ${esc(x.start_time)}` : ""}</p><p>${esc(x.description || "")}</p></div></article>`).join("");
@@ -672,7 +771,7 @@ function renderSchedules(items) {
   if ($("scheduleList")) {
     $("scheduleList").innerHTML = items.length
       ? items.slice(0, 9).map(x => `<article class="generic-card"><small>${esc(x.day || "")}</small><h3>${esc(x.title)}</h3><p>${esc(x.time_text || "")}${x.class_name ? " · " + esc(x.class_name) : ""}</p></article>`).join("")
-      : '<div class="empty">Belum ada jadwal.</div>';
+      : '<div class="empty">Jadwal belum tersedia.</div>';
   }
 }
 
@@ -680,7 +779,7 @@ function renderDocuments(items) {
   if ($("documentList")) {
     $("documentList").innerHTML = items.length
       ? items.map(x => `<article class="generic-card"><h3>${esc(x.title)}</h3><p>${esc(x.description || "")}</p><a class="admin-link" href="${esc(x.file_url || "#")}" target="_blank" rel="noopener">Buka Dokumen →</a></article>`).join("")
-      : '<div class="empty">Belum ada dokumen.</div>';
+      : '<div class="empty">Belum ada dokumen publik.</div>';
   }
 }
 

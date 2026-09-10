@@ -203,7 +203,7 @@ const MENU_VIS_ITEMS = [
   { key: "profile", label: "Profil Sekolah", desc: "Mengatur halaman Profil Sekolah, Visi-Misi, dan tombol Kenali Sekolah." },
   { key: "staff", label: "Pendidik & Tenaga Kependidikan", desc: "Mengatur bagian Pendidik, Guru, dan Pengawas Sekolah." },
   { key: "programs", label: "Program Sekolah", desc: "Mengatur bagian daftar Program Sekolah unggulan." },
-  { key: "news", label: "Berita", desc: "Mengatur bagian Berita, pengumuman, dan artikel terbaru." },
+  { key: "news", label: "Berita", desc: "Mengatur bagian berita dan artikel terbaru sekolah." },
   { key: "achievements", label: "Prestasi", desc: "Mengatur bagian daftar Prestasi dan penghargaan sekolah." },
   { key: "gallery", label: "Galeri", desc: "Mengatur dokumentasi foto kegiatan sekolah." },
   { key: "complaints", label: "Pengaduan", desc: "Mengatur formulir pengaduan masyarakat dan wali murid." },
@@ -802,6 +802,15 @@ function fillProfile() {
     if (el) el.value = profile[k] ?? "";
   }
 
+  // Dynamic branding
+  const name = profile.name || window.SDN_SITE_DEFAULTS?.schoolName || "Sekolah";
+  const shortName = profile.short_name || window.SDN_SITE_DEFAULTS?.schoolShortName || "ADM";
+  document.title = `Admin | ${name}`;
+  if ($("adminBrandName")) $("adminBrandName").textContent = name;
+  if ($("adminBrandMark")) $("adminBrandMark").textContent = shortName;
+  if ($("loginBrandMark")) $("loginBrandMark").textContent = shortName;
+  if ($("loginTitle")) $("loginTitle").textContent = `Portal Admin ${name}`;
+
   const missionEl = $("schoolMission");
   if (missionEl) {
     missionEl.value = Array.isArray(profile.mission) ? profile.mission.join("\n") : "";
@@ -814,7 +823,7 @@ function fillProfile() {
 
   const heroPreview = $("schoolHeroPreview");
   if (heroPreview) {
-    heroPreview.src = profile.hero_image_url || "https://cdn-sekolah.annibuku.com/20607216/1.jpg";
+    heroPreview.src = profile.hero_image_url || "../assets/school-hero-placeholder.svg";
   }
 
   // Record initial snapshot for dirty state detection

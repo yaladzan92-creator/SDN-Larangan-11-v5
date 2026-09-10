@@ -2,18 +2,18 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin | SDN Larangan 11</title><link rel="stylesheet" href="css/admin.css">
+<title>Admin | Portal Sekolah</title><link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 <div id="loginView" class="login-shell">
-  <div class="login-card"><div class="brand-mark">L11</div><h1>Admin SDN Larangan 11</h1><p>Masuk untuk mengelola konten website.</p>
+  <div class="login-card"><div class="brand-mark" id="loginBrandMark">ADM</div><h1 id="loginTitle">Portal Admin Sekolah</h1><p>Masuk untuk mengelola konten website.</p>
     <form id="loginForm"><label>Email Admin<input id="email" type="email" required></label><label>Password<input id="password" type="password" required></label><button class="primary" type="submit">Masuk</button></form>
     <div id="loginMsg" class="msg"></div><small>Akun dibuat melalui Supabase Authentication. Tidak ada mode demo pada versi produksi.</small>
   </div>
 </div>
 
 <div id="appView" class="app-shell hidden">
-<aside><div class="side-brand"><div class="brand-mark">L11</div><b>SDN Larangan 11</b></div>
+<aside><div class="side-brand"><div class="brand-mark" id="adminBrandMark">ADM</div><b id="adminBrandName">Admin Sekolah</b></div>
 <nav>
 <a href="#dashboard">📊 Dashboard</a><a href="#sekolah">🏫 Data Sekolah</a><a href="#pendidik">👩‍🏫 Profil Pendidik</a><a href="#pengaduan">📬 Pengaduan</a><a href="#rombel">🏷️ Rombongan Belajar</a><a href="#eskul">🏆 Ekstrakurikuler</a><a href="#kegiatan-eskul">🎯 Kegiatan Eskul</a><a href="#program">📚 Program</a><a href="#berita">📰 Berita</a><a href="#prestasi">🥇 Prestasi</a><a href="#galeri">🖼️ Galeri</a><a href="#dokumen">📄 Dokumen</a><a href="#jadwal">📅 Jadwal</a><a href="#sync">🔄 Sinkronisasi</a><a href="#settings">⚙️ Pengaturan</a>
 </nav><button id="logoutBtn" class="logout">Keluar</button></aside>
@@ -40,7 +40,7 @@
 <label>Misi — satu baris per poin<textarea id="schoolMission"></textarea></label><label>Subjudul Hero<textarea id="schoolHeroSubtitle"></textarea></label>
 <label>Judul SPMB<input id="schoolSpmbTitle"></label><label>URL SPMB<input id="schoolSpmbUrl"></label>
 <label>Deskripsi SPMB<textarea id="schoolSpmbDescription"></textarea></label>
-<div class="logo-manager full"><div><b>Logo Sekolah</b><p class="hint">Logo dipakai pada header, hero, profil, dan kontak website publik.</p><img id="schoolLogoPreview" src="../assets/logo-sekolah.jpeg" alt="Logo sekolah"></div><div><label>Upload Logo Baru<input id="schoolLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label><button type="button" class="secondary" id="uploadLogoBtn">Upload & Gunakan Logo</button><small>Disimpan ke Supabase Storage bucket school-media.</small></div></div><div class="logo-manager full"><div><b>Foto Hero / Gedung Sekolah</b><p class="hint">Foto ini menjadi gambar besar di halaman beranda seperti desain Professional V2.</p><img id="schoolHeroPreview" src="https://cdn-sekolah.annibuku.com/20607216/1.jpg" alt="Foto SDN Larangan 11"></div><div><label>Upload Foto Hero Baru<input id="schoolHeroFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="secondary" id="uploadHeroBtn">Upload & Gunakan Foto Hero</button><small>Admin dapat mengganti foto kapan saja tanpa mengubah kode.</small></div></div>
+<div class="logo-manager full"><div><b>Logo Sekolah</b><p class="hint">Logo dipakai pada header, hero, profil, dan kontak website publik.</p><img id="schoolLogoPreview" src="../assets/logo-sekolah.jpeg" alt="Logo sekolah"></div><div><label>Upload Logo Baru<input id="schoolLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label><button type="button" class="secondary" id="uploadLogoBtn">Upload & Gunakan Logo</button><small>Disimpan ke Supabase Storage bucket school-media.</small></div></div><div class="logo-manager full"><div><b>Foto Hero / Gedung Sekolah</b><p class="hint">Foto ini menjadi gambar besar di halaman beranda seperti desain Professional V2.</p><img id="schoolHeroPreview" src="../assets/school-hero-placeholder.svg" alt="Foto sekolah"></div><div><label>Upload Foto Hero Baru<input id="schoolHeroFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="secondary" id="uploadHeroBtn">Upload & Gunakan Foto Hero</button><small>Admin dapat mengganti foto kapan saja tanpa mengubah kode.</small></div></div>
 </div><div id="profileMsg" class="msg"></div></section>
 
 <section id="pendidik" class="panel">
@@ -127,6 +127,7 @@
 <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/site-defaults.js"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/admin.js"></script>

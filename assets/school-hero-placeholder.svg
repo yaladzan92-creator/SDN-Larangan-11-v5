@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <!-- Background -->
+  <rect width="1200" height="600" fill="url(#bgGrad)" />
+  <rect width="1200" height="600" fill="url(#grid)" />
+  
+  <!-- Architectural / School Elements Silhouette -->
+  <g opacity="0.15">
+    <rect x="200" y="250" width="800" height="350" fill="#ffffff" rx="8"/>
+    <polygon points="150,250 600,100 1050,250" fill="#ffffff"/>
+    <rect x="520" y="400" width="160" height="200" fill="#ffffff"/>
+  </g>
+  
+  <!-- Modern Geometric Artwork -->
+  <circle cx="900" cy="200" r="150" fill="url(#accentGrad)" opacity="0.3" filter="blur(20px)" />
+  <circle cx="300" cy="400" r="200" fill="#1d4ed8" opacity="0.2" filter="blur(30px)" />
+  
+  <!-- Safe Text/Branding Frame -->
+  <g transform="translate(100, 220)">
+    <rect x="-10" y="-10" width="60" height="6" fill="url(#accentGrad)" rx="3"/>
+    <text x="0" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="#ffffff" letter-spacing="1">SELAMAT DATANG</text>
+    <text x="0" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="500" fill="#93c5fd">Portal Resmi Informasi &amp; Layanan Sekolah</text>
+  </g>
+</svg>

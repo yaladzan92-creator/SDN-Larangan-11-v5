@@ -55,5 +55,9 @@
   };
 
   window.SDN11 = sdn11State;
+  
+  // Legacy alias retained for backward compatibility.
+  window.SDN_APP = sdn11State;
+  window.SDN_CONFIG = cfg;
 })();
 
