@@ -19,7 +19,7 @@ function parseHtml(html:string,fields:string[],config:any){const text=cleanText(
  npsn:[/NPSN\s*[:\-]?\s*(\d{8})/i], students:[/(?:Peserta Didik|Jumlah Siswa|Siswa)\s*[:\-]?\s*([\d.,]+)/i], staff:[/(?:Guru\s*&?\s*Tendik|PTK|Jumlah Guru)\s*[:\-]?\s*([\d.,]+)/i],
  principal:[/(?:Kepala Sekolah|Kepala SDN?)[\s:,-]+([A-Za-zÀ-ÿ.'’\- ]{3,80})/i], accreditation:[/(?:Akreditasi)\s*[:\-]?\s*([A-C]|Unggul|Baik Sekali|Baik)/i],
  status:[/(?:Status Sekolah|Status)\s*[:\-]?\s*(Negeri|Swasta)/i], level:[/(?:Jenjang)\s*[:\-]?\s*(SD|Sekolah Dasar)/i],
- address:[/(?:Alamat)\s*[:\-]?\s*(.{10,180}?)(?=\s(?:Kecamatan|Kelurahan|NPSN|Status|Jenjang|Akreditasi)\b|$)/i], city:[/(Kota Tangerang)/i], name:[/(SD(?:N| Negeri)\s+Larangan\s+11)/i]
+ address:[/(?:Alamat)\s*[:\-]?\s*(.{10,180}?)(?=\s(?:Kecamatan|Kelurahan|NPSN|Status|Jenjang|Akreditasi)\b|$)/i], city:[/(?:Kota|Kabupaten)\s+([A-Za-zÀ-ÿ\s]{3,40})/i], name:[/(?:Nama Sekolah|Sekolah)\s*[:\-]?\s*([A-Za-z0-9À-ÿ\s]{3,60})/i]
 };
  for(const f of fields){let raw:any;const custom=config?.regex?.[f];if(custom){try{raw=text.match(new RegExp(custom,"i"))?.[1]}catch{}}if(raw===undefined){for(const re of defaults[f]||[]){const m=text.match(re);if(m){raw=m[1];break}}}const value=normalize(f,raw);if(value!==null&&value!=="")out[f]={value,confidence:custom?90:68}}return out}
 }
@@ -36,7 +36,7 @@ Deno.serve(async(req)=>{
   let checked=0,candidates=0,failed=0;
   for(const source of sources||[]){
    checked++;try{
-    const r=await fetch(source.source_url,{headers:{"User-Agent":"SDN-Larangan-11-SmartSync/1.0"},redirect:"follow"});if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const r=await fetch(source.source_url,{headers:{"User-Agent":"SchoolPortal-SmartSync/1.0"},redirect:"follow"});if(!r.ok)throw new Error(`HTTP ${r.status}`);
     const type=source.source_type==="json"||r.headers.get("content-type")?.includes("json")?"json":"html";const body=type==="json"?await r.json():await r.text();
     const fields=(Array.isArray(source.allowed_fields)?source.allowed_fields:[]).filter((x:string)=>ALLOWED.has(x));const parsed=type==="json"?parseJson(body,fields,source.parser_config):parseHtml(body,fields,source.parser_config);
     for(const [field,found] of Object.entries(parsed)){

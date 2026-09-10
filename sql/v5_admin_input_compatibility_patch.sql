@@ -33,5 +33,5 @@ alter table public.documents add column if not exists file_url text;
 
 -- 3. Pastikan record default id=1 ada di school_profile
 insert into public.school_profile (id, name)
-values (1, 'SDN Larangan 11')
+values (1, 'Nama Sekolah')
 on conflict (id) do nothing;

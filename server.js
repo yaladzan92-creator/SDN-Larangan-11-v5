@@ -44,5 +44,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, HOST, () => {
-  console.log(`[SDN Larangan 11] Server running on http://${HOST}:${PORT}`);
+  console.log(`[SchoolPortal] Server running on http://${HOST}:${PORT}`);
 });

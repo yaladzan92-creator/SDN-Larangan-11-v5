@@ -33,6 +33,18 @@ let cache = {
 };
 let profile = {};
 
+function applyAdminBranding(profileData = null) {
+  const defaults = window.SDN_SITE_DEFAULTS || {};
+  const schoolName = profileData?.name || defaults.schoolName || "Sekolah";
+  const brandCode = defaults.adminBrandCode || defaults.schoolShortName || "ADM";
+
+  document.title = `Admin | ${schoolName}`;
+  if ($("adminBrandName")) $("adminBrandName").textContent = schoolName;
+  if ($("adminBrandMark")) $("adminBrandMark").textContent = brandCode;
+  if ($("loginBrandMark")) $("loginBrandMark").textContent = brandCode;
+  if ($("loginTitle")) $("loginTitle").textContent = `Portal Admin ${schoolName}`;
+}
+
 // --- NOTIFICATION & FEEDBACK SYSTEM ---
 function notify(message, type = "info", title = "") {
   let container = $("toastContainer");
@@ -179,7 +191,7 @@ function validateEmail(email) {
   const val = String(email).trim();
   if (!val) return null;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-    throw new Error("Format alamat email sekolah tidak valid (contoh: sekolah@sdnlarangan11.sch.id).");
+    throw new Error("Format alamat email sekolah tidak valid (contoh: info@sekolah.sch.id).");
   }
   return val;
 }
@@ -522,6 +534,7 @@ function showLogin() {
   const appView = $("appView");
   if (loginView) loginView.classList.remove("hidden");
   if (appView) appView.classList.add("hidden");
+  applyAdminBranding();
 }
 
 const loginForm = $("loginForm");
@@ -803,13 +816,7 @@ function fillProfile() {
   }
 
   // Dynamic branding
-  const name = profile.name || window.SDN_SITE_DEFAULTS?.schoolName || "Sekolah";
-  const shortName = profile.short_name || window.SDN_SITE_DEFAULTS?.schoolShortName || "ADM";
-  document.title = `Admin | ${name}`;
-  if ($("adminBrandName")) $("adminBrandName").textContent = name;
-  if ($("adminBrandMark")) $("adminBrandMark").textContent = shortName;
-  if ($("loginBrandMark")) $("loginBrandMark").textContent = shortName;
-  if ($("loginTitle")) $("loginTitle").textContent = `Portal Admin ${name}`;
+  applyAdminBranding(profile);
 
   const missionEl = $("schoolMission");
   if (missionEl) {
@@ -818,7 +825,9 @@ function fillProfile() {
 
   const logoPreview = $("schoolLogoPreview");
   if (logoPreview) {
-    logoPreview.src = profile.logo_url || "../assets/logo-sekolah.jpeg";
+    const defaults = window.SDN_SITE_DEFAULTS || {};
+    const defaultLogo = defaults.logoPath ? ("../" + defaults.logoPath) : "../assets/logo-sekolah.jpeg";
+    logoPreview.src = profile.logo_url || defaultLogo;
   }
 
   const heroPreview = $("schoolHeroPreview");
@@ -2056,6 +2065,7 @@ if ($("complaintModal")) {
 }
 
 // Safe top-level initialization
+applyAdminBranding();
 authCheck().catch(err => {
   console.error("[SDN11 Admin] Top-level authCheck error:", err);
 });

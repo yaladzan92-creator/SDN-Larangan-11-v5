@@ -21,38 +21,7 @@ const defaultAvatar = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
 </svg>
 `);
 
-const fallbackProfile = {
-  name: window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11",
-  npsn: window.SDN_SITE_DEFAULTS?.npsn || "20607216",
-  status: "Negeri",
-  level: window.SDN_SITE_DEFAULTS?.level || "Sekolah Dasar",
-  accreditation: "A",
-  students: null,
-  staff: null,
-  principal: "Fetty Meriyanti",
-  address: window.SDN_SITE_DEFAULTS?.address || "Jl. H. Majuk No. 180, Larangan Utara, Kecamatan Larangan, Kota Tangerang, Banten 15154",
-  city: window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang",
-  description: `${window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11"} merupakan sekolah dasar negeri yang berdedikasi tinggi di ${window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang"}.`,
-  vision: "Membentuk generasi yang religius, disiplin, jujur, kreatif dan berkarakter yang peduli terhadap lingkungan.",
-  mission: ["Religius", "Disiplin", "Jujur", "Kreatif", "Berkarakter", "Peduli Lingkungan"],
-  logo_url: window.SDN_SITE_DEFAULTS?.logoPath || "assets/logo-sekolah.jpeg",
-  hero_image_url: "assets/school-hero-placeholder.svg",
-  spmb_title: "Informasi SPMB",
-  spmb_description: "Informasi penerimaan murid baru dapat diperbarui melalui Admin.",
-  spmb_url: "https://spmb.tangerangkota.go.id/",
-  menu_visibility: {
-    profile: true,
-    staff: true,
-    programs: true,
-    news: true,
-    achievements: true,
-    gallery: true,
-    complaints: true,
-    contact: true,
-    more: true,
-    spmb: true
-  }
-};
+const defaults = window.SDN_SITE_DEFAULTS || {};
 
 const DEFAULT_MENU_VISIBILITY = {
   profile: true,
@@ -65,6 +34,28 @@ const DEFAULT_MENU_VISIBILITY = {
   contact: true,
   more: true,
   spmb: true
+};
+
+const fallbackProfile = {
+  name: defaults.schoolName || "Sekolah",
+  npsn: defaults.npsn || "",
+  status: "",
+  level: defaults.level || "Sekolah Dasar",
+  accreditation: "",
+  students: null,
+  staff: null,
+  principal: "",
+  address: defaults.address || "",
+  city: defaults.city || "",
+  description: "",
+  vision: "",
+  mission: [],
+  logo_url: defaults.logoPath || "assets/logo-sekolah.jpeg",
+  hero_image_url: "assets/school-hero-placeholder.svg",
+  spmb_title: "Informasi SPMB",
+  spmb_description: "",
+  spmb_url: "",
+  menu_visibility: DEFAULT_MENU_VISIBILITY
 };
 
 function setElementVisibility(target, visible) {
@@ -252,11 +243,28 @@ async function init() {
 }
 
 function applyPageMetadata(p) {
-  const name = p.name || window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11";
-  const city = p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang";
-  const district = p.district || window.SDN_SITE_DEFAULTS?.district || "Kecamatan Larangan";
-  const titleText = `${name} | ${city}`;
-  const descText = p.description || `Portal resmi informasi dan layanan ${name}, ${district}, ${city}.`;
+  const defaults = window.SDN_SITE_DEFAULTS || {};
+
+  const name =
+    p?.name ||
+    defaults.schoolName ||
+    "Sekolah";
+
+  const city =
+    p?.city ||
+    defaults.city ||
+    "";
+
+  const district =
+    p?.district ||
+    defaults.district ||
+    "";
+
+  const titleText = city ? `${name} | ${city}` : name;
+  const locParts = [district, city].filter(Boolean).join(", ");
+  const descText =
+    p?.description ||
+    (locParts ? `Portal informasi ${name}, ${locParts}.` : `Portal informasi ${name}.`);
 
   document.title = titleText;
 
@@ -280,8 +288,34 @@ function applyPageMetadata(p) {
 }
 
 function renderProfile(p) {
-  const name = p.name || window.SDN_SITE_DEFAULTS?.schoolName || "SDN Larangan 11";
-  const logo = p.logo_url || window.SDN_SITE_DEFAULTS?.logoPath || "assets/logo-sekolah.jpeg";
+  const defaults = window.SDN_SITE_DEFAULTS || {};
+
+  const name =
+    p?.name ||
+    defaults.schoolName ||
+    "Sekolah";
+
+  const shortName =
+    p?.short_name ||
+    defaults.schoolShortName ||
+    name;
+
+  const city =
+    p?.city ||
+    defaults.city ||
+    "";
+
+  const district =
+    p?.district ||
+    defaults.district ||
+    "";
+
+  const village =
+    p?.village ||
+    defaults.village ||
+    "";
+
+  const logo = p?.logo_url || defaults.logoPath || "assets/logo-sekolah.jpeg";
 
   if ($("brandLogo")) {
     $("brandLogo").src = logo;
@@ -291,71 +325,139 @@ function renderProfile(p) {
     $("footerLogo").src = logo;
     $("footerLogo").alt = `Logo ${name}`;
   }
-  if ($("brandName")) $("brandName").textContent = (p.short_name || window.SDN_SITE_DEFAULTS?.schoolShortName || name).toUpperCase();
-  if ($("brandSubtitle")) $("brandSubtitle").textContent = `${window.SDN_SITE_DEFAULTS?.district || "Kecamatan Larangan"} · ${p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang"}`;
-  if ($("topbarMeta")) $("topbarMeta").textContent = `NPSN ${p.npsn || window.SDN_SITE_DEFAULTS?.npsn || "—"} · ${p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang"}`;
-  
+  if ($("brandName")) {
+    $("brandName").textContent = shortName.toUpperCase();
+  }
+
+  const brandParts = [
+    district,
+    city
+  ].filter(Boolean);
+  if ($("brandSubtitle")) {
+    $("brandSubtitle").textContent = brandParts.join(" · ");
+  }
+
   const topbarSpan = document.querySelector(".topbar-inner span:first-child");
   if (topbarSpan) {
     topbarSpan.textContent = `Portal Informasi ${name}`;
   }
 
-  if ($("heroSchool")) $("heroSchool").textContent = name;
-  if ($("heroSubtitle")) $("heroSubtitle").textContent = p.hero_subtitle || p.vision || "";
-  if ($("heroImg")) {
-    $("heroImg").src = p.hero_image_url || "assets/school-hero-placeholder.svg";
-    $("heroImg").alt = `Gedung ${name}`;
-  }
-  
-  const heroBadge = document.querySelector(".hero-copy .badge");
-  if (heroBadge) {
-    heroBadge.textContent = `${p.level || window.SDN_SITE_DEFAULTS?.level || "Sekolah Dasar Negeri"} · ${p.village || window.SDN_SITE_DEFAULTS?.village || "Larangan Utara"}`;
+  const metaParts = [];
+  const activeNpsn = p?.npsn || defaults.npsn;
+  if (activeNpsn) metaParts.push(`NPSN ${activeNpsn}`);
+  if (city) metaParts.push(city);
+  if ($("topbarMeta")) {
+    $("topbarMeta").textContent = metaParts.length ? metaParts.join(" · ") : "—";
   }
 
-  if ($("statNpsn")) $("statNpsn").textContent = p.npsn || "—";
-  if ($("statStatus")) $("statStatus").textContent = p.status || "—";
-  if ($("statStudents")) $("statStudents").textContent = p.students ?? "—";
-  if ($("statStaff")) $("statStaff").textContent = p.staff ?? "—";
-  
-  if ($("profileTitle")) $("profileTitle").textContent = p.profile_title || `Berakar di ${window.SDN_SITE_DEFAULTS?.village || "Larangan Utara"}, tumbuh bersama masyarakat.`;
-  if ($("profileDescription")) $("profileDescription").textContent = p.description || "";
-  
+  if ($("heroSchool")) $("heroSchool").textContent = name;
+  if ($("heroSubtitle")) $("heroSubtitle").textContent = p?.hero_subtitle || p?.vision || "";
+  if ($("heroImg")) {
+    $("heroImg").src = p?.hero_image_url || "assets/school-hero-placeholder.svg";
+    $("heroImg").alt = `Gedung ${name}`;
+  }
+
+  // Hero Badge
+  const heroBadge = document.querySelector(".hero-copy .badge");
+  if (heroBadge) {
+    const heroMeta = [
+      p?.level || defaults.level,
+      village
+    ].filter(Boolean);
+    if (heroMeta.length) {
+      heroBadge.textContent = heroMeta.join(" · ");
+      heroBadge.style.display = "";
+    } else {
+      heroBadge.textContent = "";
+      heroBadge.style.display = "none";
+    }
+  }
+
+  if ($("statNpsn")) $("statNpsn").textContent = p?.npsn || defaults.npsn || "—";
+  if ($("statStatus")) $("statStatus").textContent = p?.status || "—";
+  if ($("statStudents")) $("statStudents").textContent = p?.students ?? "—";
+  if ($("statStaff")) $("statStaff").textContent = p?.staff ?? "—";
+
+  if ($("profileTitle")) {
+    $("profileTitle").textContent = p?.profile_title || (village ? `Berakar di ${village}, tumbuh bersama masyarakat.` : "Tumbuh dan berprestasi bersama masyarakat.");
+  }
+  if ($("profileDescription")) {
+    $("profileDescription").textContent = p?.description || "";
+  }
+
   if ($("profilePhoto")) {
-    $("profilePhoto").src = p.profile_photo_url || "assets/school-profile-placeholder.svg";
+    $("profilePhoto").src = p?.profile_photo_url || "assets/school-profile-placeholder.svg";
     $("profilePhoto").alt = `Profil ${name}`;
   }
-  
+
   if ($("profileInfo")) {
     $("profileInfo").innerHTML = [
       ["Nama", name],
-      ["NPSN", p.npsn],
-      ["Status", p.status],
-      ["Jenjang", p.level],
-      ["Kepala Sekolah", p.principal]
-    ].filter(x => x[1]).map(([a, b]) => `<div><span>${esc(a)}</span><strong>${esc(b)}</strong></div>`).join("");
+      ["NPSN", p?.npsn || defaults.npsn || "—"],
+      ["Status", p?.status || "—"],
+      ["Jenjang", p?.level || defaults.level || "—"],
+      ["Kepala Sekolah", p?.principal || "—"]
+    ].map(([a, b]) => `<div><span>${esc(a)}</span><strong>${esc(b)}</strong></div>`).join("");
   }
 
-  if ($("visionText")) $("visionText").textContent = p.vision || "";
-  const m = Array.isArray(p.mission) && p.mission.length ? p.mission : fallbackProfile.mission;
-  if ($("missionText")) $("missionText").innerHTML = m.map(x => `<p>${esc(x)}</p>`).join("");
+  if ($("visionText")) {
+    $("visionText").textContent = p?.vision || "Visi sekolah belum tersedia.";
+  }
+  const m = Array.isArray(p?.mission) && p.mission.length ? p.mission : [];
+  if ($("missionText")) {
+    $("missionText").innerHTML = m.length
+      ? m.map(x => `<p>${esc(x)}</p>`).join("")
+      : '<p class="muted">Misi sekolah belum tersedia.</p>';
+  }
+
   if ($("contactSchool")) $("contactSchool").textContent = name;
-  if ($("contactAddress")) $("contactAddress").textContent = p.address || "";
-  if ($("mapLink")) $("mapLink").href = p.maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + (p.city || ""))}`;
-  
+  if ($("contactAddress")) $("contactAddress").textContent = p?.address || defaults.address || "—";
+  if ($("mapLink")) {
+    if (p?.maps_url) {
+      $("mapLink").href = p.maps_url;
+      $("mapLink").style.display = "";
+    } else if (name && city) {
+      $("mapLink").href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + city)}`;
+      $("mapLink").style.display = "";
+    } else {
+      $("mapLink").href = "#";
+      $("mapLink").style.display = "none";
+    }
+  }
+
   if ($("contactInfo")) {
     $("contactInfo").innerHTML = [
-      ["NPSN", p.npsn],
-      ["Status", p.status],
-      ["Jenjang", p.level],
-      ["Akreditasi", p.accreditation]
-    ].filter(x => x[1]).map(([a, b]) => `<div><span>${esc(a)}</span><strong>${esc(b)}</strong></div>`).join("");
+      ["NPSN", p?.npsn || defaults.npsn || "—"],
+      ["Status", p?.status || "—"],
+      ["Jenjang", p?.level || defaults.level || "—"],
+      ["Akreditasi", p?.accreditation || "—"],
+      ["Telepon", p?.phone || "—"],
+      ["Email", p?.email || "—"]
+    ].map(([a, b]) => `<div><span>${esc(a)}</span><strong>${esc(b)}</strong></div>`).join("");
   }
 
-  if ($("spmbTitle")) $("spmbTitle").textContent = p.spmb_title || "Informasi SPMB";
-  if ($("spmbDescription")) $("spmbDescription").textContent = p.spmb_description || "";
-  if ($("spmbLink")) $("spmbLink").href = p.spmb_url || "#";
+  const hasSpmbContent = Boolean(p?.spmb_title || p?.spmb_description || p?.spmb_url);
+  const spmbSection = document.querySelector(".cta-spmb");
+  if (spmbSection && !hasSpmbContent) {
+    spmbSection.hidden = true;
+    spmbSection.classList.add("is-hidden");
+  } else if (spmbSection && hasSpmbContent) {
+    if ($("spmbTitle")) $("spmbTitle").textContent = p?.spmb_title || "Informasi SPMB";
+    if ($("spmbDescription")) $("spmbDescription").textContent = p?.spmb_description || "";
+    if ($("spmbLink")) {
+      if (p?.spmb_url) {
+        $("spmbLink").href = p.spmb_url;
+        $("spmbLink").style.display = "";
+      } else {
+        $("spmbLink").href = "#";
+        $("spmbLink").style.display = "none";
+      }
+    }
+  }
+
   if ($("footerSchool")) $("footerSchool").textContent = name;
-  if ($("footerCity")) $("footerCity").textContent = (p.city || window.SDN_SITE_DEFAULTS?.city || "Kota Tangerang") + ` · Provinsi ${window.SDN_SITE_DEFAULTS?.province || "Banten"}`;
+  const footerLocation = [city, defaults.province ? `Provinsi ${defaults.province}` : ""].filter(Boolean).join(" · ");
+  if ($("footerCity")) $("footerCity").textContent = footerLocation || "";
 
   const copyrightEl = document.querySelector(".copyright");
   if (copyrightEl) {
@@ -365,11 +467,11 @@ function renderProfile(p) {
 
   if ($("socialLinks")) {
     const socials = [
-      ["Instagram", p.instagram_url, "◎"],
-      ["Facebook", p.facebook_url, "f"],
-      ["YouTube", p.youtube_url, "▶"],
-      ["TikTok", p.tiktok_url, "♪"],
-      ["WhatsApp", p.whatsapp_url, "◉"]
+      ["Instagram", p?.instagram_url, "◎"],
+      ["Facebook", p?.facebook_url, "f"],
+      ["YouTube", p?.youtube_url, "▶"],
+      ["TikTok", p?.tiktok_url, "♪"],
+      ["WhatsApp", p?.whatsapp_url, "◉"]
     ].filter(x => x[1]);
     $("socialLinks").innerHTML = socials.length
       ? socials.map(([sName, url, icon]) => `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sName)}"><span>${icon}</span>${esc(sName)}</a>`).join("")
@@ -501,7 +603,7 @@ function initComplaintForm() {
       console.warn("[SDN11] Bot submission rejected via honeypot.");
       // Do NOT insert into Supabase; simulate normal acceptance to deceive automated bots
       form.reset();
-      showComplaintMsg("Pengaduan Anda berhasil dikirim! Laporan ini bersifat privat dan akan segera ditindaklanjuti oleh pihak sekolah. Terima kasih atas kepedulian Anda terhadap SDN Larangan 11.", "success");
+      showComplaintMsg("Pengaduan Anda berhasil dikirim! Laporan ini bersifat privat dan akan segera ditindaklanjuti oleh pihak sekolah. Terima kasih atas kepedulian Anda.", "success");
       return;
     }
 
@@ -641,7 +743,7 @@ function initComplaintForm() {
 
       // Success
       form.reset();
-      showComplaintMsg("Pengaduan Anda berhasil dikirim! Laporan ini bersifat privat dan akan segera ditindaklanjuti oleh pihak sekolah. Terima kasih atas kepedulian Anda terhadap SDN Larangan 11.", "success");
+      showComplaintMsg("Pengaduan Anda berhasil dikirim! Laporan ini bersifat privat dan akan segera ditindaklanjuti oleh pihak sekolah. Terima kasih atas kepedulian Anda.", "success");
     } catch (err) {
       console.warn("[SDN11] Complaint submit error:", err?.message || err);
       showComplaintMsg("Gagal mengirim pengaduan: " + (err.message || "Terjadi kendala jaringan."), "error");

@@ -1,9 +1,9 @@
--- SDN Larangan 11 V3 - Production schema
+-- Production schema - School Website Template
 create extension if not exists pgcrypto;
 
 create table if not exists public.school_profile (
  id integer primary key default 1 check (id=1),
- name text not null default 'SDN Larangan 11', npsn text, status text, level text default 'Sekolah Dasar',
+ name text not null default 'Nama Sekolah', npsn text, status text, level text default 'Sekolah Dasar',
  accreditation text, principal text, students integer, staff integer, address text, city text, phone text, email text,
  maps_url text, profile_title text, description text, vision text, mission jsonb not null default '[]'::jsonb,
  hero_subtitle text, spmb_title text, spmb_description text, spmb_url text,
@@ -106,8 +106,10 @@ create policy "admin schedules" on public.school_schedules for all to authentica
 create policy "admin sync runs" on public.sync_runs for all to authenticated using (true) with check (true);
 create policy "admin sync staging" on public.sync_staging for all to authenticated using (true) with check (true);
 
-insert into public.school_profile(id,name,npsn,status,level,address,city,profile_title,description,vision,mission,spmb_title,spmb_description,spmb_url)
-values(1,'SDN Larangan 11','20607216','Negeri','Sekolah Dasar','Jl. H. Majuk No. 180, Larangan Utara, Kecamatan Larangan, Kota Tangerang, Banten 15154','Kota Tangerang','Rumah Belajar yang Aman, Aktif, dan Berkarakter','Website ini menjadi pusat informasi digital SDN Larangan 11 untuk murid, orang tua/wali, guru, tenaga kependidikan, dan masyarakat.','Membentuk generasi yang religius, disiplin, jujur, kreatif dan berkarakter yang peduli terhadap lingkungan.','[]'::jsonb,'Informasi SPMB','Jadwal, persyaratan, jalur, daya tampung dan tautan pendaftaran dapat diperbarui oleh admin.','https://spmb.tangerangkota.go.id/')
+-- Inisialisasi default profil sekolah generik.
+-- Untuk data spesifik sekolah tertentu (misalnya SDN Larangan 11), jalankan sql/seed_sdn_larangan_11.sql
+insert into public.school_profile(id,name,level,profile_title,spmb_title)
+values(1,'Nama Sekolah','Sekolah Dasar','Profil Sekolah','Informasi SPMB')
 on conflict(id) do nothing;
 
 insert into storage.buckets(id,name,public) values('school-media','school-media',true)

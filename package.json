@@ -1,7 +1,7 @@
 {
   "name": "sdn-larangan-11-web",
   "version": "4.1.0",
-  "description": "Portal informasi dan website resmi SDN Larangan 11 Kota Tangerang",
+  "description": "Portal informasi dan website resmi sekolah",
   "type": "module",
   "main": "server.js",
   "scripts": {
